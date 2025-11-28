@@ -64,10 +64,23 @@ const HomePage: React.FC = () => {
   if (softwareList.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <Empty description={t('common.noData')} />
+        <Empty 
+          description={
+            <div>
+              <div>{t('common.noData')}</div>
+              <div style={{ marginTop: 8, color: '#888' }}>{t('common.noDataHint')}</div>
+            </div>
+          } 
+        />
       </div>
     );
   }
+
+  // 获取当前选中标签的翻译名称
+  const getSelectedTagName = () => {
+    if (!selectedTag) return '';
+    return t(`tags.${selectedTag}`, { defaultValue: selectedTag });
+  };
 
   return (
     <div>
@@ -107,65 +120,83 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      <Row gutter={[16, 16]}>
-        {filteredSoftwareList.map((software) => {
-          const latestVersion = software.versions[0];
-          const downloadType = latestVersion?.downloadType;
+      {/* 分类下没有软件的提示 */}
+      {filteredSoftwareList.length === 0 && selectedTag && (
+        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+          <Empty
+            description={
+              <div>
+                <div>{t('common.noCategoryData')}</div>
+                <div style={{ marginTop: 8, color: '#888' }}>
+                  {t('common.noCategoryDataHint', { category: getSelectedTagName() })}
+                </div>
+              </div>
+            }
+          />
+        </div>
+      )}
 
-          return (
-            <Col xs={24} sm={12} md={8} lg={6} key={software.name}>
-              <Link to={`/software/${encodeURIComponent(software.name)}`}>
-                <Card
-                  hoverable
-                  className="software-card"
-                  styles={{ body: { padding: '16px' } }}
-                >
-                  <div style={{ marginBottom: 8 }}>
-                    <Text strong style={{ fontSize: 16 }}>
-                      {software.name}
-                    </Text>
-                  </div>
-                  
-                  {/* 软件标签 */}
-                  {software.tags && software.tags.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      {software.tags.map((tag) => (
-                        <Tag 
-                          key={tag} 
-                          color={TAG_COLORS[tag as TagType] || 'default'}
-                          style={{ marginBottom: 4 }}
-                        >
-                          {t(`tags.${tag}`, { defaultValue: tag })}
-                        </Tag>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <Paragraph
-                    type="secondary"
-                    ellipsis={{ rows: 2 }}
-                    style={{ marginBottom: 12, minHeight: 44 }}
+      {filteredSoftwareList.length > 0 && (
+        <Row gutter={[16, 16]}>
+          {filteredSoftwareList.map((software) => {
+            const latestVersion = software.versions[0];
+            const downloadType = latestVersion?.downloadType;
+
+            return (
+              <Col xs={24} sm={12} md={8} lg={6} key={software.name}>
+                <Link to={`/software/${encodeURIComponent(software.name)}`}>
+                  <Card
+                    hoverable
+                    className="software-card"
+                    styles={{ body: { padding: '16px' } }}
                   >
-                    {software.description || t('common.noDescription')}
-                  </Paragraph>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Tag color="blue">
-                      {latestVersion?.version || t('common.unknownVersion')}
-                    </Tag>
-                    <Tag
-                      icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
-                      color={downloadType === 'p2p' ? 'orange' : 'green'}
+                    <div style={{ marginBottom: 8 }}>
+                      <Text strong style={{ fontSize: 16 }}>
+                        {software.name}
+                      </Text>
+                    </div>
+                    
+                    {/* 软件标签 */}
+                    {software.tags && software.tags.length > 0 && (
+                      <div style={{ marginBottom: 8 }}>
+                        {software.tags.map((tag) => (
+                          <Tag 
+                            key={tag} 
+                            color={TAG_COLORS[tag as TagType] || 'default'}
+                            style={{ marginBottom: 4 }}
+                          >
+                            {t(`tags.${tag}`, { defaultValue: tag })}
+                          </Tag>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <Paragraph
+                      type="secondary"
+                      ellipsis={{ rows: 2 }}
+                      style={{ marginBottom: 12, minHeight: 44 }}
                     >
-                      {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
-                    </Tag>
-                  </div>
-                </Card>
-              </Link>
-            </Col>
-          );
-        })}
-      </Row>
+                      {software.description || t('common.noDescription')}
+                    </Paragraph>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Tag color="blue">
+                        {latestVersion?.version || t('common.unknownVersion')}
+                      </Tag>
+                      <Tag
+                        icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
+                        color={downloadType === 'p2p' ? 'orange' : 'green'}
+                      >
+                        {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
+                      </Tag>
+                    </div>
+                  </Card>
+                </Link>
+              </Col>
+            );
+          })}
+        </Row>
+      )}
     </div>
   );
 };
