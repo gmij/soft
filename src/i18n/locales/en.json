@@ -1,0 +1,50 @@
+{
+  "common": {
+    "siteName": "Software Download",
+    "loading": "Loading...",
+    "loadError": "Failed to load data, please try again later",
+    "noData": "No software available",
+    "noDataHint": "No software has been added to this site yet. Please check back later.",
+    "noCategoryData": "No software in this category",
+    "noCategoryDataHint": "No software found in \"{{category}}\" category. Please select another category or view all.",
+    "noDescription": "No description",
+    "unknownVersion": "Unknown version",
+    "directDownload": "Direct Download",
+    "p2pDownload": "P2P Download",
+    "p2p": "P2P",
+    "download": "Download",
+    "copyLink": "Copy Link",
+    "copySuccess": "Link copied to clipboard",
+    "copyFailed": "Copy failed, please copy manually",
+    "backToHome": "Back to Home",
+    "home": "Home",
+    "notFound": "Software not found",
+    "latestVersion": "Latest",
+    "versionNotes": "Version Notes",
+    "noDownloadFiles": "No download files",
+    "p2pAddress": "P2P Download Address:"
+  },
+  "home": {
+    "title": "Software List",
+    "softwareCount": "{{count}} software available for download",
+    "allCategories": "All Categories",
+    "filterByTag": "Filter by Category"
+  },
+  "detail": {
+    "versionList": "Version List",
+    "versionCount": "({{count}} versions)"
+  },
+  "footer": {
+    "copyright": "Software Download ©{{year}} Created with ❤️"
+  },
+  "tags": {
+    "development": "Development",
+    "office": "Office",
+    "media": "Media",
+    "system": "System",
+    "network": "Network",
+    "security": "Security",
+    "game": "Games",
+    "other": "Other"
+  }
+}

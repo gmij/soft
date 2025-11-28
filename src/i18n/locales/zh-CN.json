@@ -1,0 +1,50 @@
+{
+  "common": {
+    "siteName": "软件下载站",
+    "loading": "加载中...",
+    "loadError": "加载数据失败，请稍后重试",
+    "noData": "暂无软件资源",
+    "noDataHint": "网站还没有录入任何软件，请稍后再来查看",
+    "noCategoryData": "该分类下暂无软件",
+    "noCategoryDataHint": "\"{{category}}\" 分类下还没有软件，请选择其他分类或查看全部",
+    "noDescription": "暂无描述",
+    "unknownVersion": "未知版本",
+    "directDownload": "直接下载",
+    "p2pDownload": "P2P 下载",
+    "p2p": "P2P",
+    "download": "下载",
+    "copyLink": "复制链接",
+    "copySuccess": "链接已复制到剪贴板",
+    "copyFailed": "复制失败，请手动复制",
+    "backToHome": "返回首页",
+    "home": "首页",
+    "notFound": "未找到软件",
+    "latestVersion": "最新版本",
+    "versionNotes": "版本说明",
+    "noDownloadFiles": "暂无下载文件",
+    "p2pAddress": "P2P 下载地址："
+  },
+  "home": {
+    "title": "软件资源列表",
+    "softwareCount": "共 {{count}} 个软件可供下载",
+    "allCategories": "全部分类",
+    "filterByTag": "按分类筛选"
+  },
+  "detail": {
+    "versionList": "版本列表",
+    "versionCount": "({{count}} 个版本)"
+  },
+  "footer": {
+    "copyright": "软件下载站 ©{{year}} Created with ❤️"
+  },
+  "tags": {
+    "development": "开发工具",
+    "office": "办公软件",
+    "media": "媒体工具",
+    "system": "系统工具",
+    "network": "网络工具",
+    "security": "安全软件",
+    "game": "游戏娱乐",
+    "other": "其他"
+  }
+}
