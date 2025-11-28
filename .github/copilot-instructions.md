@@ -18,7 +18,9 @@
 ```
 down/
 ├── {resourceName}/
+│   ├── readme.md         # 软件描述文件（可选，作为默认描述）
 │   └── {version}/
+│       ├── readme.md     # 版本描述文件（可选，优先于上级 readme.md）
 │       ├── link.txt      # 存在则表示 P2P 下载，内容为 P2P 地址
 │       └── {files}       # 不存在 link.txt 时，目录下文件用于直接下载
 ```
@@ -27,6 +29,12 @@ down/
 
 1. 如果 `version` 目录下存在 `link.txt`，则读取其中的 P2P 地址提供给用户
 2. 如果不存在 `link.txt`，则扫描目录下所有文件，生成直接下载链接
+
+### 资源描述逻辑
+
+1. 优先使用 `{version}/readme.md` 作为该版本的描述
+2. 如果版本目录没有 `readme.md`，则使用 `{resourceName}/readme.md` 作为默认描述
+3. `readme.md` 用于展示软件介绍、使用说明、更新日志等信息
 
 请在使用 Copilot 时遵循以下最佳实践。
 

@@ -16,15 +16,25 @@
 ```
 down/
 ├── chrome/                    # 软件名称
+│   ├── readme.md             # 软件描述（作为默认描述）
 │   └── 115.0.5790/           # 版本号
+│       ├── readme.md         # 版本描述（优先于上级 readme.md）
 │       ├── link.txt          # P2P 下载地址文件（存在则为 P2P 下载）
 │       └── chrome-win64.zip  # 直接下载的资源文件
 ├── vscode/
+│   ├── readme.md             # VSCode 软件描述
 │   ├── 1.85.0/
+│   │   ├── readme.md         # 1.85.0 版本特有描述
 │   │   └── vscode-win.exe
 │   └── 1.84.0/
-│       └── link.txt
+│       └── link.txt          # 无 readme.md，使用上级目录的描述
 ```
+
+### 资源描述优先级
+
+1. **版本描述**：优先使用 `{resourceName}/{version}/readme.md`
+2. **默认描述**：如果版本目录没有 readme.md，使用 `{resourceName}/readme.md`
+3. readme.md 用于展示软件介绍、功能说明、更新日志等
 
 ## 适用场景
 
@@ -85,9 +95,14 @@ down/
 - 直接下载（目录下的文件）
 - P2P 下载（link.txt 中的地址）
 
+资源描述：
+- 优先使用 {version}/readme.md
+- 如果不存在，使用 {resourceName}/readme.md 作为默认描述
+
 输出：
 - TypeScript 类型定义
 - 数据解析逻辑
+- readme.md 解析和渲染
 ```
 
 ### 系统架构图
@@ -129,6 +144,7 @@ down/
 功能：
 - 递归扫描资源目录
 - 解析 link.txt 文件
+- 解析 readme.md 文件（版本目录优先，否则使用软件目录的）
 - 生成资源列表 JSON
 - 触发 React 构建
 ```

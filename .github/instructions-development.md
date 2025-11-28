@@ -37,6 +37,7 @@
 - 扫描 down/ 目录下的所有软件资源
 - 解析目录结构 down/{resourceName}/{version}/
 - 判断是否存在 link.txt（P2P下载）
+- 解析 readme.md 文件（版本目录优先，否则使用软件目录的）
 - 输出资源列表的 JSON 文件
 ```
 
@@ -67,15 +68,18 @@
 - 递归扫描 down/ 目录
 - 解析 {resourceName}/{version}/ 结构
 - 检测 link.txt 判断下载类型
+- 解析 readme.md 文件（版本目录优先，否则使用软件目录的 readme.md）
 - 生成资源列表 JSON
 
 输出格式：
 {
   "resources": [{
     "name": "软件名",
+    "description": "来自 readme.md 的描述",
     "versions": [{
       "version": "1.0.0",
       "type": "direct|p2p",
+      "description": "版本特有描述（如果有）",
       "files": ["file1.exe"] | "p2pLink": "magnet:..."
     }]
   }]
@@ -91,10 +95,11 @@
 - 显示软件名称和图标
 - 版本选择下拉框
 - 下载按钮（区分直接下载和 P2P）
+- 显示软件描述（来自 readme.md，支持 Markdown 渲染）
 - 响应式布局
 
 使用的 Ant Design 组件：
-- Card、Select、Button、Tag
+- Card、Select、Button、Tag、Typography
 ```
 
 ### Ant Design 集成
@@ -160,11 +165,14 @@ props:
 请为软件资源定义 TypeScript 类型：
 
 需要定义：
-- Resource（软件资源）
-- Version（版本信息）
+- Resource（软件资源，包含默认描述）
+- Version（版本信息，包含版本特有描述）
 - DownloadInfo（下载信息，区分直接下载和 P2P）
 
-参考目录结构：down/{resourceName}/{version}/
+参考目录结构：
+- down/{resourceName}/readme.md（软件默认描述）
+- down/{resourceName}/{version}/readme.md（版本描述，优先）
+- down/{resourceName}/{version}/link.txt（P2P 链接）
 ```
 
 ## 注意事项
@@ -175,3 +183,5 @@ props:
 - 资源扫描脚本需要处理特殊字符的文件名
 - P2P 链接显示需要考虑用户体验
 - 确保生成的静态页面 SEO 友好
+- readme.md 解析需要支持 Markdown 渲染
+- 注意 readme.md 的优先级逻辑（版本目录优先于软件目录）
