@@ -218,7 +218,7 @@ const SoftwareDetailPage: React.FC = () => {
       </Title>
 
       <Collapse
-        defaultActiveKey={[software.versions[0]?.version]}
+        defaultActiveKey={software.versions.length > 0 ? [software.versions[0].version] : []}
         items={collapseItems}
       />
     </div>
