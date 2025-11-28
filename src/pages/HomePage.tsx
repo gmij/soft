@@ -1,16 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, Row, Col, Typography, Empty, Spin, Tag } from 'antd';
+import { Card, Row, Col, Typography, Empty, Spin, Tag, Space } from 'antd';
 import { AppstoreOutlined, DownloadOutlined, CloudOutlined } from '@ant-design/icons';
-import type { Software, SoftwareData } from '../types';
+import { useTranslation } from 'react-i18next';
+import type { Software, SoftwareData, TagType } from '../types';
+import { TAG_COLORS } from '../types';
 import { fetchSoftwareData } from '../utils';
 
 const { Title, Paragraph, Text } = Typography;
 
 const HomePage: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [softwareList, setSoftwareList] = useState<Software[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSoftwareData()
@@ -20,16 +24,31 @@ const HomePage: React.FC = () => {
       })
       .catch((err) => {
         console.error('Failed to load software data:', err);
-        setError('加载数据失败，请稍后重试');
+        setError(t('common.loadError'));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
+
+  // 收集所有唯一的标签
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    softwareList.forEach((software) => {
+      software.tags?.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [softwareList]);
+
+  // 根据选中的标签过滤软件列表
+  const filteredSoftwareList = useMemo(() => {
+    if (!selectedTag) return softwareList;
+    return softwareList.filter((software) => software.tags?.includes(selectedTag));
+  }, [softwareList, selectedTag]);
 
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
         <Spin size="large" />
-        <Paragraph style={{ marginTop: 16 }}>加载中...</Paragraph>
+        <Paragraph style={{ marginTop: 16 }}>{t('common.loading')}</Paragraph>
       </div>
     );
   }
@@ -45,7 +64,7 @@ const HomePage: React.FC = () => {
   if (softwareList.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <Empty description="暂无软件资源" />
+        <Empty description={t('common.noData')} />
       </div>
     );
   }
@@ -55,15 +74,41 @@ const HomePage: React.FC = () => {
       <div style={{ marginBottom: 24 }}>
         <Title level={2}>
           <AppstoreOutlined style={{ marginRight: 8 }} />
-          软件资源列表
+          {t('home.title')}
         </Title>
         <Paragraph type="secondary">
-          共 {softwareList.length} 个软件可供下载
+          {t('home.softwareCount', { count: filteredSoftwareList.length })}
         </Paragraph>
       </div>
 
+      {/* 标签筛选 */}
+      {allTags.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <Text type="secondary" style={{ marginRight: 8 }}>{t('home.filterByTag')}:</Text>
+          <Space wrap>
+            <Tag
+              color={selectedTag === null ? 'blue' : 'default'}
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectedTag(null)}
+            >
+              {t('home.allCategories')}
+            </Tag>
+            {allTags.map((tag) => (
+              <Tag
+                key={tag}
+                color={selectedTag === tag ? TAG_COLORS[tag as TagType] || 'blue' : 'default'}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSelectedTag(tag)}
+              >
+                {t(`tags.${tag}`, { defaultValue: tag })}
+              </Tag>
+            ))}
+          </Space>
+        </div>
+      )}
+
       <Row gutter={[16, 16]}>
-        {softwareList.map((software) => {
+        {filteredSoftwareList.map((software) => {
           const latestVersion = software.versions[0];
           const downloadType = latestVersion?.downloadType;
 
@@ -81,23 +126,38 @@ const HomePage: React.FC = () => {
                     </Text>
                   </div>
                   
+                  {/* 软件标签 */}
+                  {software.tags && software.tags.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      {software.tags.map((tag) => (
+                        <Tag 
+                          key={tag} 
+                          color={TAG_COLORS[tag as TagType] || 'default'}
+                          style={{ marginBottom: 4 }}
+                        >
+                          {t(`tags.${tag}`, { defaultValue: tag })}
+                        </Tag>
+                      ))}
+                    </div>
+                  )}
+                  
                   <Paragraph
                     type="secondary"
                     ellipsis={{ rows: 2 }}
                     style={{ marginBottom: 12, minHeight: 44 }}
                   >
-                    {software.description || '暂无描述'}
+                    {software.description || t('common.noDescription')}
                   </Paragraph>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Tag color="blue">
-                      {latestVersion?.version || '未知版本'}
+                      {latestVersion?.version || t('common.unknownVersion')}
                     </Tag>
                     <Tag
                       icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
                       color={downloadType === 'p2p' ? 'orange' : 'green'}
                     >
-                      {downloadType === 'p2p' ? 'P2P' : '直接下载'}
+                      {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
                     </Tag>
                   </div>
                 </Card>

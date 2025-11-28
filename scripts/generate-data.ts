@@ -16,6 +16,7 @@ interface SoftwareVersion {
 interface Software {
   name: string;
   description?: string;
+  tags?: string[];
   versions: SoftwareVersion[];
 }
 
@@ -31,6 +32,17 @@ function readReadme(dirPath: string): string | undefined {
   const readmePath = path.join(dirPath, 'readme.md');
   if (fs.existsSync(readmePath)) {
     return fs.readFileSync(readmePath, 'utf-8');
+  }
+  return undefined;
+}
+
+function readTags(dirPath: string): string[] | undefined {
+  const tagsPath = path.join(dirPath, 'tags.txt');
+  if (fs.existsSync(tagsPath)) {
+    const content = fs.readFileSync(tagsPath, 'utf-8').trim();
+    if (content) {
+      return content.split('\n').map(tag => tag.trim()).filter(tag => tag);
+    }
   }
   return undefined;
 }
@@ -92,9 +104,11 @@ function scanSoftwareDirectory(): SoftwareData {
     }
 
     if (versions.length > 0) {
+      const tags = readTags(softwarePath);
       software.push({
         name: softwareName,
         description: softwareDescription,
+        tags,
         versions,
       });
     }

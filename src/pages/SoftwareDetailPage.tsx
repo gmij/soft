@@ -22,12 +22,15 @@ import {
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Software, SoftwareData, SoftwareVersion } from '../types';
+import { useTranslation } from 'react-i18next';
+import type { Software, SoftwareData, SoftwareVersion, TagType } from '../types';
+import { TAG_COLORS } from '../types';
 import { fetchSoftwareData } from '../utils';
 
 const { Title, Paragraph, Text } = Typography;
 
 const SoftwareDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { name } = useParams<{ name: string }>();
   const [loading, setLoading] = useState(true);
   const [software, setSoftware] = useState<Software | null>(null);
@@ -44,23 +47,23 @@ const SoftwareDetailPage: React.FC = () => {
         if (found) {
           setSoftware(found);
         } else {
-          setError('未找到该软件');
+          setError(t('common.notFound'));
         }
         setLoading(false);
       })
       .catch((err) => {
         console.error('Failed to load software data:', err);
-        setError('加载数据失败');
+        setError(t('common.loadError'));
         setLoading(false);
       });
-  }, [name]);
+  }, [name, t]);
 
   const handleCopyLink = async (link: string) => {
     try {
       await navigator.clipboard.writeText(link);
-      message.success('链接已复制到剪贴板');
+      message.success(t('common.copySuccess'));
     } catch {
-      message.error('复制失败，请手动复制');
+      message.error(t('common.copyFailed'));
     }
   };
 
@@ -72,7 +75,7 @@ const SoftwareDetailPage: React.FC = () => {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
         <Spin size="large" />
-        <Paragraph style={{ marginTop: 16 }}>加载中...</Paragraph>
+        <Paragraph style={{ marginTop: 16 }}>{t('common.loading')}</Paragraph>
       </div>
     );
   }
@@ -80,10 +83,10 @@ const SoftwareDetailPage: React.FC = () => {
   if (error || !software) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <Empty description={error || '未找到软件'} />
+        <Empty description={error || t('common.notFound')} />
         <Link to="/">
           <Button type="primary" style={{ marginTop: 16 }}>
-            返回首页
+            {t('common.backToHome')}
           </Button>
         </Link>
       </div>
@@ -95,7 +98,7 @@ const SoftwareDetailPage: React.FC = () => {
       return (
         <div>
           <Paragraph>
-            <Text type="secondary">P2P 下载地址：</Text>
+            <Text type="secondary">{t('common.p2pAddress')}</Text>
           </Paragraph>
           <Card size="small" style={{ background: '#f5f5f5' }}>
             <Text code copyable={{ text: version.p2pLink }}>
@@ -108,7 +111,7 @@ const SoftwareDetailPage: React.FC = () => {
             onClick={() => handleCopyLink(version.p2pLink!)}
             style={{ marginTop: 12 }}
           >
-            复制链接
+            {t('common.copyLink')}
           </Button>
         </div>
       );
@@ -129,7 +132,7 @@ const SoftwareDetailPage: React.FC = () => {
                   target="_blank"
                   key="download"
                 >
-                  下载
+                  {t('common.download')}
                 </Button>,
               ]}
             >
@@ -143,7 +146,7 @@ const SoftwareDetailPage: React.FC = () => {
       );
     }
 
-    return <Empty description="暂无下载文件" />;
+    return <Empty description={t('common.noDownloadFiles')} />;
   };
 
   const collapseItems = software.versions.map((version, index) => ({
@@ -155,16 +158,16 @@ const SoftwareDetailPage: React.FC = () => {
           icon={version.downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
           color={version.downloadType === 'p2p' ? 'orange' : 'green'}
         >
-          {version.downloadType === 'p2p' ? 'P2P 下载' : '直接下载'}
+          {version.downloadType === 'p2p' ? t('common.p2pDownload') : t('common.directDownload')}
         </Tag>
-        {index === 0 && <Tag color="blue">最新版本</Tag>}
+        {index === 0 && <Tag color="blue">{t('common.latestVersion')}</Tag>}
       </Space>
     ),
     children: (
       <div>
         {version.description && (
           <div style={{ marginBottom: 16 }}>
-            <Title level={5}>版本说明</Title>
+            <Title level={5}>{t('common.versionNotes')}</Title>
             <div className="markdown-body">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {version.description}
@@ -172,7 +175,7 @@ const SoftwareDetailPage: React.FC = () => {
             </div>
           </div>
         )}
-        <Title level={5}>下载</Title>
+        <Title level={5}>{t('common.download')}</Title>
         {renderVersionContent(version)}
       </div>
     ),
@@ -188,7 +191,7 @@ const SoftwareDetailPage: React.FC = () => {
             title: (
               <>
                 <HomeOutlined />
-                <span>首页</span>
+                <span>{t('common.home')}</span>
               </>
             ),
           },
@@ -202,6 +205,20 @@ const SoftwareDetailPage: React.FC = () => {
         <Title level={2} style={{ marginBottom: 8 }}>
           {software.name}
         </Title>
+        {/* 显示软件标签 */}
+        {software.tags && software.tags.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            {software.tags.map((tag) => (
+              <Tag 
+                key={tag} 
+                color={TAG_COLORS[tag as TagType] || 'default'}
+                style={{ marginBottom: 4 }}
+              >
+                {t(`tags.${tag}`, { defaultValue: tag })}
+              </Tag>
+            ))}
+          </div>
+        )}
         {software.description ? (
           <div className="markdown-body">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -209,12 +226,12 @@ const SoftwareDetailPage: React.FC = () => {
             </ReactMarkdown>
           </div>
         ) : (
-          <Paragraph type="secondary">暂无描述</Paragraph>
+          <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
         )}
       </Card>
 
       <Title level={4} style={{ marginBottom: 16 }}>
-        版本列表 ({software.versions.length} 个版本)
+        {t('detail.versionList')} {t('detail.versionCount', { count: software.versions.length })}
       </Title>
 
       <Collapse

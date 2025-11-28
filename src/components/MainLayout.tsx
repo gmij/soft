@@ -1,6 +1,8 @@
-import { Layout, Typography, theme } from 'antd';
+import { Layout, Typography, theme, Space } from 'antd';
 import { GithubOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Link: AntLink } = Typography;
@@ -10,6 +12,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { t } = useTranslation();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -29,16 +32,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             level={3}
             style={{ color: '#fff', margin: 0, cursor: 'pointer' }}
           >
-            📦 软件下载站
+            📦 {t('common.siteName')}
           </Title>
         </a>
-        <AntLink
-          href="https://github.com/gmij/soft"
-          target="_blank"
-          style={{ color: '#fff', fontSize: 24 }}
-        >
-          <GithubOutlined />
-        </AntLink>
+        <Space size="middle">
+          <LanguageSwitcher />
+          <AntLink
+            href="https://github.com/gmij/soft"
+            target="_blank"
+            style={{ color: '#fff', fontSize: 24 }}
+          >
+            <GithubOutlined />
+          </AntLink>
+        </Space>
       </Header>
       <Content style={{ padding: '24px 48px' }}>
         <div
@@ -53,7 +59,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </Content>
       <Footer style={{ textAlign: 'center' }}>
-        软件下载站 ©{new Date().getFullYear()} Created with ❤️
+        {t('footer.copyright', { year: new Date().getFullYear() })}
       </Footer>
     </Layout>
   );
