@@ -3,9 +3,14 @@ import { initReactI18next } from 'react-i18next';
 import zhCN from './locales/zh-CN.json';
 import en from './locales/en.json';
 
+// 默认语言
+const DEFAULT_LANGUAGE = 'zh-CN';
+
 // 获取浏览器语言
 function getBrowserLanguage(): string {
-  const browserLang = navigator.language || navigator.languages?.[0] || 'zh-CN';
+  const browserLang = navigator.language || 
+    (navigator.languages && navigator.languages.length > 0 ? navigator.languages[0] : null) || 
+    DEFAULT_LANGUAGE;
   
   // 支持的语言列表
   const supportedLanguages = ['zh-CN', 'en'];

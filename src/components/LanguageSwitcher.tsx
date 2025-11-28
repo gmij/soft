@@ -9,6 +9,9 @@ const languages = [
   { key: 'en', label: 'English' },
 ];
 
+// 默认使用第一个语言作为回退
+const DEFAULT_LANGUAGE = languages[0];
+
 const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
 
@@ -22,7 +25,7 @@ const LanguageSwitcher: React.FC = () => {
     label: lang.label,
   }));
 
-  const currentLang = languages.find((l) => l.key === i18n.language)?.label || '简体中文';
+  const currentLang = languages.find((l) => l.key === i18n.language)?.label || DEFAULT_LANGUAGE.label;
 
   return (
     <Dropdown
