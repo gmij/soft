@@ -76,7 +76,7 @@ const HomePage: React.FC = () => {
     );
   }
 
-  // 获取当前选中标签的翻译名称
+  // Get translated name of currently selected tag
   const getSelectedTagName = () => {
     if (!selectedTag) return '';
     return t(`tags.${selectedTag}`, { defaultValue: selectedTag });
@@ -94,7 +94,7 @@ const HomePage: React.FC = () => {
         </Paragraph>
       </div>
 
-      {/* 标签筛选 */}
+      {/* Tag filter */}
       {allTags.length > 0 && (
         <div style={{ marginBottom: 24 }}>
           <Text type="secondary" style={{ marginRight: 8 }}>{t('home.filterByTag')}:</Text>
@@ -120,7 +120,7 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* 分类下没有软件的提示 */}
+      {/* Empty state when no software in selected category */}
       {filteredSoftwareList.length === 0 && selectedTag && (
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
           <Empty
@@ -156,7 +156,7 @@ const HomePage: React.FC = () => {
                       </Text>
                     </div>
                     
-                    {/* 软件标签 */}
+                    {/* Software tags */}
                     {software.tags && software.tags.length > 0 && (
                       <div style={{ marginBottom: 8 }}>
                         {software.tags.map((tag) => (
