@@ -30,6 +30,9 @@ interface SoftwareData {
 const DOWN_DIR = path.resolve(__dirname, '../down');
 const OUTPUT_DIR = path.resolve(__dirname, '../public/data');
 
+// Common Chinese encodings to try when auto-detection fails
+const CHINESE_ENCODINGS = ['GBK', 'GB18030', 'GB2312', 'Big5'];
+
 /**
  * Check if a string is valid UTF-8 (no replacement characters or invalid sequences)
  */
@@ -75,9 +78,7 @@ function readFileWithEncoding(filePath: string): string {
   }
   
   // Try common Chinese encodings in order of likelihood
-  const encodingsToTry = ['GBK', 'GB18030', 'GB2312', 'Big5'];
-  
-  for (const encoding of encodingsToTry) {
+  for (const encoding of CHINESE_ENCODINGS) {
     try {
       if (iconv.encodingExists(encoding)) {
         const decoded = iconv.decode(buffer, encoding);
@@ -96,23 +97,9 @@ function readFileWithEncoding(filePath: string): string {
   // This provides readable ASCII content while marking corrupted bytes
   console.warn(`  Warning: Could not detect valid encoding for ${path.basename(filePath)}, using UTF-8 with replacement`);
   
-  // Use a custom replacement that removes invalid byte sequences
-  // while keeping the ASCII parts readable
-  let result = '';
-  let i = 0;
-  while (i < buffer.length) {
-    const byte = buffer[i];
-    if (byte < 0x80) {
-      // ASCII character
-      result += String.fromCharCode(byte);
-      i++;
-    } else {
-      // Non-ASCII byte - skip it (remove garbled characters)
-      i++;
-    }
-  }
-  
-  return result;
+  // Extract ASCII content efficiently by filtering buffer
+  const asciiBytes = buffer.filter(byte => byte < 0x80);
+  return Buffer.from(asciiBytes).toString('ascii');
 }
 
 function readReadme(dirPath: string): string | undefined {
