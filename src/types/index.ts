@@ -1,7 +1,14 @@
+// 多语言描述类型
+export interface LocalizedDescription {
+  'zh-CN'?: string;
+  'en'?: string;
+}
+
 // 软件资源类型定义
 export interface SoftwareVersion {
   version: string;
   description?: string;
+  descriptions?: LocalizedDescription;
   downloadType: 'direct' | 'p2p';
   files?: string[];
   p2pLink?: string;
@@ -10,6 +17,7 @@ export interface SoftwareVersion {
 export interface Software {
   name: string;
   description?: string;
+  descriptions?: LocalizedDescription;
   tags?: string[];
   versions: SoftwareVersion[];
 }
