@@ -7,9 +7,16 @@ import iconv from 'iconv-lite';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 多语言描述类型
+interface LocalizedDescription {
+  'zh-CN'?: string;
+  'en'?: string;
+}
+
 interface SoftwareVersion {
   version: string;
   description?: string;
+  descriptions?: LocalizedDescription;
   downloadType: 'direct' | 'p2p';
   files?: string[];
   p2pLink?: string;
@@ -18,6 +25,7 @@ interface SoftwareVersion {
 interface Software {
   name: string;
   description?: string;
+  descriptions?: LocalizedDescription;
   tags?: string[];
   versions: SoftwareVersion[];
 }
@@ -135,6 +143,37 @@ function readReadme(dirPath: string, convertToUtf8: boolean = false): string | u
   return undefined;
 }
 
+/**
+ * Read multilingual readme files from a directory
+ * Supports: readme.md (Chinese default), readme.zh-CN.md (Chinese), readme.en.md (English)
+ */
+function readLocalizedReadme(dirPath: string, convertToUtf8: boolean = false): LocalizedDescription | undefined {
+  const descriptions: LocalizedDescription = {};
+  
+  // Read Chinese readme (priority: readme.zh-CN.md > readme.md)
+  const zhCNPath = path.join(dirPath, 'readme.zh-CN.md');
+  const defaultPath = path.join(dirPath, 'readme.md');
+  
+  if (fs.existsSync(zhCNPath)) {
+    descriptions['zh-CN'] = readFileWithEncoding(zhCNPath, convertToUtf8);
+  } else if (fs.existsSync(defaultPath)) {
+    descriptions['zh-CN'] = readFileWithEncoding(defaultPath, convertToUtf8);
+  }
+  
+  // Read English readme
+  const enPath = path.join(dirPath, 'readme.en.md');
+  if (fs.existsSync(enPath)) {
+    descriptions['en'] = readFileWithEncoding(enPath, convertToUtf8);
+  }
+  
+  // Return undefined if no descriptions found
+  if (!descriptions['zh-CN'] && !descriptions['en']) {
+    return undefined;
+  }
+  
+  return descriptions;
+}
+
 function readTags(dirPath: string, convertToUtf8: boolean = false): string[] | undefined {
   const tagsPath = path.join(dirPath, 'tags.txt');
   if (fs.existsSync(tagsPath)) {
@@ -162,7 +201,9 @@ function scanSoftwareDirectory(): SoftwareData {
 
   for (const softwareName of softwareDirs) {
     const softwarePath = path.join(DOWN_DIR, softwareName);
+    // Read both legacy single description and new multilingual descriptions
     const softwareDescription = readReadme(softwarePath, convertToUtf8);
+    const softwareDescriptions = readLocalizedReadme(softwarePath, convertToUtf8);
     
     const versionDirs = fs.readdirSync(softwarePath, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
@@ -175,7 +216,19 @@ function scanSoftwareDirectory(): SoftwareData {
       const versionPath = path.join(softwarePath, versionName);
       const linkFile = path.join(versionPath, 'link.txt');
       
-      // 优先使用版本目录的 readme.md，否则使用软件目录的
+      // Read version-level multilingual descriptions
+      const versionLocalizedDesc = readLocalizedReadme(versionPath, convertToUtf8);
+      
+      // Merge version descriptions with software descriptions (version takes priority)
+      const versionDescriptions: LocalizedDescription | undefined = 
+        versionLocalizedDesc || softwareDescriptions 
+          ? {
+              'zh-CN': versionLocalizedDesc?.['zh-CN'] || softwareDescriptions?.['zh-CN'],
+              'en': versionLocalizedDesc?.['en'] || softwareDescriptions?.['en'],
+            }
+          : undefined;
+      
+      // Legacy: single description for backward compatibility
       const versionDescription = readReadme(versionPath, convertToUtf8) || softwareDescription;
 
       if (fs.existsSync(linkFile)) {
@@ -184,6 +237,7 @@ function scanSoftwareDirectory(): SoftwareData {
         versions.push({
           version: versionName,
           description: versionDescription,
+          descriptions: versionDescriptions,
           downloadType: 'p2p',
           p2pLink,
         });
@@ -192,12 +246,18 @@ function scanSoftwareDirectory(): SoftwareData {
         const files = fs.readdirSync(versionPath)
           .filter(file => {
             const filePath = path.join(versionPath, file);
-            return fs.statSync(filePath).isFile() && file.toLowerCase() !== 'readme.md';
+            // Exclude readme files in any language
+            const lowerFile = file.toLowerCase();
+            return fs.statSync(filePath).isFile() && 
+              lowerFile !== 'readme.md' && 
+              lowerFile !== 'readme.zh-cn.md' && 
+              lowerFile !== 'readme.en.md';
           });
 
         versions.push({
           version: versionName,
           description: versionDescription,
+          descriptions: versionDescriptions,
           downloadType: 'direct',
           files,
         });
@@ -209,6 +269,7 @@ function scanSoftwareDirectory(): SoftwareData {
       software.push({
         name: softwareName,
         description: softwareDescription,
+        descriptions: softwareDescriptions,
         tags,
         versions,
       });

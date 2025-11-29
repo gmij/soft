@@ -25,14 +25,37 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
-import type { Software, SoftwareData, SoftwareVersion, TagType } from '../types';
+import type { Software, SoftwareData, SoftwareVersion, TagType, LocalizedDescription } from '../types';
 import { TAG_COLORS } from '../types';
 import { fetchSoftwareData } from '../utils';
 
 const { Title, Paragraph, Text } = Typography;
 
+/**
+ * Get the description for the current language
+ * Falls back to any available language if the preferred language is not available
+ */
+function getLocalizedDescription(
+  descriptions: LocalizedDescription | undefined,
+  legacyDescription: string | undefined,
+  language: string
+): string | undefined {
+  // If we have multilingual descriptions, use them
+  if (descriptions) {
+    // Map i18next language code to our keys
+    const langKey = language === 'en' ? 'en' : 'zh-CN';
+    const fallbackKey = language === 'en' ? 'zh-CN' : 'en';
+    
+    // Try preferred language first, then fallback
+    return descriptions[langKey] || descriptions[fallbackKey] || legacyDescription;
+  }
+  
+  // Fall back to legacy single description
+  return legacyDescription;
+}
+
 const SoftwareDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { name } = useParams<{ name: string }>();
   const [loading, setLoading] = useState(true);
   const [software, setSoftware] = useState<Software | null>(null);
@@ -151,37 +174,45 @@ const SoftwareDetailPage: React.FC = () => {
     return <Empty description={t('common.noDownloadFiles')} />;
   };
 
-  const collapseItems = software.versions.map((version, index) => ({
-    key: version.version,
-    label: (
-      <Space>
-        <Text strong>{version.version}</Text>
-        <Tag
-          icon={version.downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
-          color={version.downloadType === 'p2p' ? 'orange' : 'green'}
-        >
-          {version.downloadType === 'p2p' ? t('common.p2pDownload') : t('common.directDownload')}
-        </Tag>
-        {index === 0 && <Tag color="blue">{t('common.latestVersion')}</Tag>}
-      </Space>
-    ),
-    children: (
-      <div>
-        {version.description && (
-          <div style={{ marginBottom: 16 }}>
-            <Title level={5}>{t('common.versionNotes')}</Title>
-            <div className="markdown-body">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {version.description}
-              </ReactMarkdown>
+  const collapseItems = software.versions.map((version, index) => {
+    const versionDescription = getLocalizedDescription(
+      version.descriptions,
+      version.description,
+      i18n.language
+    );
+    
+    return {
+      key: version.version,
+      label: (
+        <Space>
+          <Text strong>{version.version}</Text>
+          <Tag
+            icon={version.downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
+            color={version.downloadType === 'p2p' ? 'orange' : 'green'}
+          >
+            {version.downloadType === 'p2p' ? t('common.p2pDownload') : t('common.directDownload')}
+          </Tag>
+          {index === 0 && <Tag color="blue">{t('common.latestVersion')}</Tag>}
+        </Space>
+      ),
+      children: (
+        <div>
+          {versionDescription && (
+            <div style={{ marginBottom: 16 }}>
+              <Title level={5}>{t('common.versionNotes')}</Title>
+              <div className="markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {versionDescription}
+                </ReactMarkdown>
+              </div>
             </div>
-          </div>
-        )}
-        <Title level={5}>{t('common.download')}</Title>
-        {renderVersionContent(version)}
-      </div>
-    ),
-  }));
+          )}
+          <Title level={5}>{t('common.download')}</Title>
+          {renderVersionContent(version)}
+        </div>
+      ),
+    };
+  });
 
   return (
     <div>
@@ -223,15 +254,22 @@ const SoftwareDetailPage: React.FC = () => {
                 ))}
               </div>
             )}
-            {software.description ? (
-              <div className="markdown-body">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {software.description}
-                </ReactMarkdown>
-              </div>
-            ) : (
-              <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
-            )}
+            {(() => {
+              const softwareDescription = getLocalizedDescription(
+                software.descriptions,
+                software.description,
+                i18n.language
+              );
+              return softwareDescription ? (
+                <div className="markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {softwareDescription}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
+              );
+            })()}
           </Col>
           <Col xs={24} md={6}>
             {/* 下载最新版本按钮 */}
