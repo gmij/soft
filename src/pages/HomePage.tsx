@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, Row, Col, Typography, Empty, Spin, Tag, Space } from 'antd';
-import { AppstoreOutlined, DownloadOutlined, CloudOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { Card, Row, Col, Typography, Empty, Spin, Tag, Space, Button, message } from 'antd';
+import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Software, SoftwareData, TagType } from '../types';
 import { TAG_COLORS } from '../types';
@@ -11,6 +11,7 @@ const { Title, Paragraph, Text } = Typography;
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [softwareList, setSoftwareList] = useState<Software[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +83,23 @@ const HomePage: React.FC = () => {
     return t(`tags.${selectedTag}`, { defaultValue: selectedTag });
   };
 
+  // Handle copy P2P link
+  const handleCopyLink = async (link: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(link);
+      message.success(t('common.copySuccess'));
+    } catch {
+      message.error(t('common.copyFailed'));
+    }
+  };
+
+  // Get download URL for direct download
+  const getDownloadUrl = (softwareName: string, version: string, fileName: string) => {
+    return `${import.meta.env.BASE_URL}down/${encodeURIComponent(softwareName)}/${encodeURIComponent(version)}/${encodeURIComponent(fileName)}`;
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -142,56 +160,93 @@ const HomePage: React.FC = () => {
             const latestVersion = software.versions[0];
             const downloadType = latestVersion?.downloadType;
 
+            // Handle card click navigation
+            const handleCardClick = () => {
+              navigate(`/software/${encodeURIComponent(software.name)}`);
+            };
+
+            // Handle download button click
+            const handleDownloadClick = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (latestVersion.files && latestVersion.files.length > 0) {
+                window.open(getDownloadUrl(software.name, latestVersion.version, latestVersion.files[0]), '_blank');
+              }
+            };
+
             return (
               <Col xs={24} sm={12} md={8} lg={6} key={software.name}>
-                <Link to={`/software/${encodeURIComponent(software.name)}`}>
-                  <Card
-                    hoverable
-                    className="software-card"
-                    styles={{ body: { padding: '16px' } }}
-                  >
+                <Card
+                  hoverable
+                  className="software-card"
+                  styles={{ body: { padding: '16px' } }}
+                  onClick={handleCardClick}
+                >
+                  <div style={{ marginBottom: 8 }}>
+                    <Text strong style={{ fontSize: 16 }}>
+                      {software.name}
+                    </Text>
+                  </div>
+                  
+                  {/* Software tags */}
+                  {software.tags && software.tags.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <Text strong style={{ fontSize: 16 }}>
-                        {software.name}
-                      </Text>
+                      {software.tags.map((tag) => (
+                        <Tag 
+                          key={tag} 
+                          color={TAG_COLORS[tag as TagType] || 'default'}
+                          style={{ marginBottom: 4 }}
+                        >
+                          {t(`tags.${tag}`, { defaultValue: tag })}
+                        </Tag>
+                      ))}
                     </div>
-                    
-                    {/* Software tags */}
-                    {software.tags && software.tags.length > 0 && (
-                      <div style={{ marginBottom: 8 }}>
-                        {software.tags.map((tag) => (
-                          <Tag 
-                            key={tag} 
-                            color={TAG_COLORS[tag as TagType] || 'default'}
-                            style={{ marginBottom: 4 }}
-                          >
-                            {t(`tags.${tag}`, { defaultValue: tag })}
-                          </Tag>
-                        ))}
-                      </div>
-                    )}
-                    
-                    <Paragraph
-                      type="secondary"
-                      ellipsis={{ rows: 2 }}
-                      style={{ marginBottom: 12, minHeight: 44 }}
+                  )}
+                  
+                  <Paragraph
+                    type="secondary"
+                    ellipsis={{ rows: 2 }}
+                    style={{ marginBottom: 12, minHeight: 44 }}
+                  >
+                    {software.description || t('common.noDescription')}
+                  </Paragraph>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <Tag color="blue">
+                      {latestVersion?.version || t('common.unknownVersion')}
+                    </Tag>
+                    <Tag
+                      icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
+                      color={downloadType === 'p2p' ? 'orange' : 'green'}
                     >
-                      {software.description || t('common.noDescription')}
-                    </Paragraph>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Tag color="blue">
-                        {latestVersion?.version || t('common.unknownVersion')}
-                      </Tag>
-                      <Tag
-                        icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
-                        color={downloadType === 'p2p' ? 'orange' : 'green'}
-                      >
-                        {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
-                      </Tag>
+                      {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
+                    </Tag>
+                  </div>
+
+                  {/* Download button */}
+                  {latestVersion && (
+                    <div style={{ textAlign: 'center' }}>
+                      {downloadType === 'p2p' && latestVersion.p2pLink ? (
+                        <Button
+                          type="primary"
+                          icon={<CopyOutlined />}
+                          onClick={(e) => handleCopyLink(latestVersion.p2pLink!, e)}
+                          block
+                        >
+                          {t('common.copyLink')}
+                        </Button>
+                      ) : latestVersion.files && latestVersion.files.length > 0 ? (
+                        <Button
+                          type="primary"
+                          icon={<DownloadOutlined />}
+                          onClick={handleDownloadClick}
+                          block
+                        >
+                          {t('common.download')}
+                        </Button>
+                      ) : null}
                     </div>
-                  </Card>
-                </Link>
+                  )}
+                </Card>
               </Col>
             );
           })}
