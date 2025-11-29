@@ -12,6 +12,8 @@ import {
   Space,
   Breadcrumb,
   message,
+  Row,
+  Col,
 } from 'antd';
 import {
   DownloadOutlined,
@@ -202,32 +204,82 @@ const SoftwareDetailPage: React.FC = () => {
       />
 
       <Card style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ marginBottom: 8 }}>
-          {software.name}
-        </Title>
-        {/* 显示软件标签 */}
-        {software.tags && software.tags.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            {software.tags.map((tag) => (
-              <Tag 
-                key={tag} 
-                color={TAG_COLORS[tag as TagType] || 'default'}
-                style={{ marginBottom: 4 }}
-              >
-                {t(`tags.${tag}`, { defaultValue: tag })}
-              </Tag>
-            ))}
-          </div>
-        )}
-        {software.description ? (
-          <div className="markdown-body">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {software.description}
-            </ReactMarkdown>
-          </div>
-        ) : (
-          <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
-        )}
+        <Row gutter={24}>
+          <Col xs={24} md={18}>
+            <Title level={2} style={{ marginBottom: 8 }}>
+              {software.name}
+            </Title>
+            {/* 显示软件标签 */}
+            {software.tags && software.tags.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                {software.tags.map((tag) => (
+                  <Tag 
+                    key={tag} 
+                    color={TAG_COLORS[tag as TagType] || 'default'}
+                    style={{ marginBottom: 4 }}
+                  >
+                    {t(`tags.${tag}`, { defaultValue: tag })}
+                  </Tag>
+                ))}
+              </div>
+            )}
+            {software.description ? (
+              <div className="markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {software.description}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
+            )}
+          </Col>
+          <Col xs={24} md={6}>
+            {/* 下载最新版本按钮 */}
+            {software.versions.length > 0 && (
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                padding: '16px 0',
+                borderLeft: '1px solid var(--ant-color-border, #f0f0f0)',
+                height: '100%',
+                minHeight: 120
+              }}>
+                <Tag color="blue" style={{ marginBottom: 8 }}>
+                  {software.versions[0].version}
+                </Tag>
+                <Text type="secondary" style={{ marginBottom: 12, textAlign: 'center' }}>
+                  {t('common.latestVersion')}
+                </Text>
+                {software.versions[0].downloadType === 'p2p' && software.versions[0].p2pLink ? (
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<CopyOutlined />}
+                    onClick={() => {
+                      const p2pLink = software.versions[0].p2pLink;
+                      if (p2pLink) {
+                        handleCopyLink(p2pLink);
+                      }
+                    }}
+                  >
+                    {t('common.copyLink')}
+                  </Button>
+                ) : software.versions[0].files?.[0] ? (
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<DownloadOutlined />}
+                    href={getDownloadUrl(software.name, software.versions[0].version, software.versions[0].files[0])}
+                    target="_blank"
+                  >
+                    {t('detail.downloadLatest')}
+                  </Button>
+                ) : null}
+              </div>
+            )}
+          </Col>
+        </Row>
       </Card>
 
       <Title level={4} style={{ marginBottom: 16 }}>

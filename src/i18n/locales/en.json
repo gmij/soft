@@ -32,7 +32,8 @@
   },
   "detail": {
     "versionList": "Version List",
-    "versionCount": "({{count}} versions)"
+    "versionCount": "({{count}} versions)",
+    "downloadLatest": "Download Latest"
   },
   "footer": {
     "copyright": "Software Download ©{{year}} Created with ❤️"

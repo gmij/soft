@@ -32,7 +32,8 @@
   },
   "detail": {
     "versionList": "版本列表",
-    "versionCount": "({{count}} 个版本)"
+    "versionCount": "({{count}} 个版本)",
+    "downloadLatest": "下载最新版"
   },
   "footer": {
     "copyright": "软件下载站 ©{{year}} Created with ❤️"
