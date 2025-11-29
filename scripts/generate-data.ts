@@ -220,13 +220,17 @@ function scanSoftwareDirectory(): SoftwareData {
       const versionLocalizedDesc = readLocalizedReadme(versionPath, convertToUtf8);
       
       // Merge version descriptions with software descriptions (version takes priority)
-      const versionDescriptions: LocalizedDescription | undefined = 
-        versionLocalizedDesc || softwareDescriptions 
-          ? {
-              'zh-CN': versionLocalizedDesc?.['zh-CN'] || softwareDescriptions?.['zh-CN'],
-              'en': versionLocalizedDesc?.['en'] || softwareDescriptions?.['en'],
-            }
-          : undefined;
+      let versionDescriptions: LocalizedDescription | undefined;
+      if (versionLocalizedDesc || softwareDescriptions) {
+        const zhCN = versionLocalizedDesc?.['zh-CN'] || softwareDescriptions?.['zh-CN'];
+        const en = versionLocalizedDesc?.['en'] || softwareDescriptions?.['en'];
+        // Only create the object if at least one language has content
+        if (zhCN || en) {
+          versionDescriptions = {};
+          if (zhCN) versionDescriptions['zh-CN'] = zhCN;
+          if (en) versionDescriptions['en'] = en;
+        }
+      }
       
       // Legacy: single description for backward compatibility
       const versionDescription = readReadme(versionPath, convertToUtf8) || softwareDescription;
@@ -246,12 +250,12 @@ function scanSoftwareDirectory(): SoftwareData {
         const files = fs.readdirSync(versionPath)
           .filter(file => {
             const filePath = path.join(versionPath, file);
-            // Exclude readme files in any language
+            // Exclude readme files in any language (case-insensitive check)
             const lowerFile = file.toLowerCase();
-            return fs.statSync(filePath).isFile() && 
-              lowerFile !== 'readme.md' && 
-              lowerFile !== 'readme.zh-cn.md' && 
-              lowerFile !== 'readme.en.md';
+            const isReadme = lowerFile === 'readme.md' || 
+              lowerFile === 'readme.zh-cn.md' || 
+              lowerFile === 'readme.en.md';
+            return fs.statSync(filePath).isFile() && !isReadme;
           });
 
         versions.push({
