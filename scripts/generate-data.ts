@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import chardet from 'chardet';
+import iconv from 'iconv-lite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,18 +30,115 @@ interface SoftwareData {
 const DOWN_DIR = path.resolve(__dirname, '../down');
 const OUTPUT_DIR = path.resolve(__dirname, '../public/data');
 
-function readReadme(dirPath: string): string | undefined {
+// Common Chinese encodings to try when auto-detection fails
+const CHINESE_ENCODINGS = ['GBK', 'GB18030', 'GB2312', 'Big5'];
+
+/**
+ * Check if a string is valid UTF-8 (no replacement characters or invalid sequences)
+ */
+function isValidUtf8(buffer: Buffer): boolean {
+  try {
+    const str = buffer.toString('utf-8');
+    // Check for replacement character which indicates invalid UTF-8 bytes
+    return !str.includes('\uFFFD');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Read file with automatic encoding detection and optional conversion to UTF-8
+ * Supports UTF-8, GBK, GB2312, GB18030, Big5, and other common encodings
+ * 
+ * @param filePath - Path to the file to read
+ * @param convertToUtf8 - If true, converts the file to UTF-8 in place when non-UTF-8 encoding is detected
+ * @returns The file content as a string
+ */
+function readFileWithEncoding(filePath: string, convertToUtf8: boolean = false): string {
+  const buffer = fs.readFileSync(filePath);
+  
+  // First, check if file is valid UTF-8
+  if (isValidUtf8(buffer)) {
+    return buffer.toString('utf-8');
+  }
+  
+  // Detect encoding using chardet
+  const detectedEncoding = chardet.detect(buffer);
+  
+  // Try to decode with detected encoding (if not UTF-8)
+  if (detectedEncoding && detectedEncoding !== 'UTF-8' && detectedEncoding !== 'ASCII') {
+    try {
+      if (iconv.encodingExists(detectedEncoding)) {
+        const decoded = iconv.decode(buffer, detectedEncoding);
+        // Verify if the decoded content looks valid (contains no replacement characters)
+        if (!decoded.includes('\uFFFD')) {
+          console.log(`  Detected encoding: ${detectedEncoding} for ${path.basename(filePath)}`);
+          // Convert to UTF-8 if requested
+          if (convertToUtf8) {
+            convertFileToUtf8(filePath, decoded);
+          }
+          return decoded;
+        }
+      }
+    } catch {
+      // Fall through to try other encodings
+    }
+  }
+  
+  // Try common Chinese encodings in order of likelihood
+  for (const encoding of CHINESE_ENCODINGS) {
+    try {
+      if (iconv.encodingExists(encoding)) {
+        const decoded = iconv.decode(buffer, encoding);
+        // Check if decoded content looks valid (contains Chinese characters and no replacement chars)
+        if (!decoded.includes('\uFFFD') && /[\u4e00-\u9fff]/.test(decoded)) {
+          console.log(`  Fallback encoding: ${encoding} for ${path.basename(filePath)}`);
+          // Convert to UTF-8 if requested
+          if (convertToUtf8) {
+            convertFileToUtf8(filePath, decoded);
+          }
+          return decoded;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  
+  // Last resort: return as UTF-8 with invalid bytes replaced
+  // This provides readable ASCII content while marking corrupted bytes
+  console.warn(`  Warning: Could not detect valid encoding for ${path.basename(filePath)}, using UTF-8 with replacement`);
+  
+  // Extract ASCII content efficiently by filtering buffer
+  const asciiBytes = buffer.filter(byte => byte < 0x80);
+  return Buffer.from(asciiBytes).toString('ascii');
+}
+
+/**
+ * Convert a file to UTF-8 encoding in place
+ * This helps normalize all text files to UTF-8 for consistent handling
+ */
+function convertFileToUtf8(filePath: string, content: string): void {
+  try {
+    fs.writeFileSync(filePath, content, 'utf-8');
+    console.log(`  ✓ Converted to UTF-8: ${path.basename(filePath)}`);
+  } catch (error) {
+    console.warn(`  Warning: Failed to convert ${path.basename(filePath)} to UTF-8:`, error);
+  }
+}
+
+function readReadme(dirPath: string, convertToUtf8: boolean = false): string | undefined {
   const readmePath = path.join(dirPath, 'readme.md');
   if (fs.existsSync(readmePath)) {
-    return fs.readFileSync(readmePath, 'utf-8');
+    return readFileWithEncoding(readmePath, convertToUtf8);
   }
   return undefined;
 }
 
-function readTags(dirPath: string): string[] | undefined {
+function readTags(dirPath: string, convertToUtf8: boolean = false): string[] | undefined {
   const tagsPath = path.join(dirPath, 'tags.txt');
   if (fs.existsSync(tagsPath)) {
-    const content = fs.readFileSync(tagsPath, 'utf-8').trim();
+    const content = readFileWithEncoding(tagsPath, convertToUtf8).trim();
     if (content) {
       return content.split('\n').map(tag => tag.trim()).filter(tag => tag);
     }
@@ -49,6 +148,8 @@ function readTags(dirPath: string): string[] | undefined {
 
 function scanSoftwareDirectory(): SoftwareData {
   const software: Software[] = [];
+  // Enable auto-conversion of non-UTF-8 files to UTF-8 during build
+  const convertToUtf8 = true;
 
   if (!fs.existsSync(DOWN_DIR)) {
     console.log('down/ 目录不存在，创建空数据');
@@ -61,7 +162,7 @@ function scanSoftwareDirectory(): SoftwareData {
 
   for (const softwareName of softwareDirs) {
     const softwarePath = path.join(DOWN_DIR, softwareName);
-    const softwareDescription = readReadme(softwarePath);
+    const softwareDescription = readReadme(softwarePath, convertToUtf8);
     
     const versionDirs = fs.readdirSync(softwarePath, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
@@ -75,7 +176,7 @@ function scanSoftwareDirectory(): SoftwareData {
       const linkFile = path.join(versionPath, 'link.txt');
       
       // 优先使用版本目录的 readme.md，否则使用软件目录的
-      const versionDescription = readReadme(versionPath) || softwareDescription;
+      const versionDescription = readReadme(versionPath, convertToUtf8) || softwareDescription;
 
       if (fs.existsSync(linkFile)) {
         // P2P 下载
@@ -104,7 +205,7 @@ function scanSoftwareDirectory(): SoftwareData {
     }
 
     if (versions.length > 0) {
-      const tags = readTags(softwarePath);
+      const tags = readTags(softwarePath, convertToUtf8);
       software.push({
         name: softwareName,
         description: softwareDescription,
@@ -122,6 +223,7 @@ function scanSoftwareDirectory(): SoftwareData {
 
 function main() {
   console.log('开始生成软件数据...');
+  console.log('注意：非 UTF-8 编码的文件将自动转换为 UTF-8');
   
   // 确保输出目录存在
   if (!fs.existsSync(OUTPUT_DIR)) {
