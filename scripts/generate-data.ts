@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import chardet from 'chardet';
+import iconv from 'iconv-lite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,10 +30,95 @@ interface SoftwareData {
 const DOWN_DIR = path.resolve(__dirname, '../down');
 const OUTPUT_DIR = path.resolve(__dirname, '../public/data');
 
+/**
+ * Check if a string is valid UTF-8 (no replacement characters or invalid sequences)
+ */
+function isValidUtf8(buffer: Buffer): boolean {
+  try {
+    const str = buffer.toString('utf-8');
+    // Check for replacement character which indicates invalid UTF-8 bytes
+    return !str.includes('\uFFFD');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Read file with automatic encoding detection
+ * Supports UTF-8, GBK, GB2312, GB18030, Big5, and other common encodings
+ */
+function readFileWithEncoding(filePath: string): string {
+  const buffer = fs.readFileSync(filePath);
+  
+  // First, check if file is valid UTF-8
+  if (isValidUtf8(buffer)) {
+    return buffer.toString('utf-8');
+  }
+  
+  // Detect encoding using chardet
+  const detectedEncoding = chardet.detect(buffer);
+  
+  // Try to decode with detected encoding (if not UTF-8)
+  if (detectedEncoding && detectedEncoding !== 'UTF-8' && detectedEncoding !== 'ASCII') {
+    try {
+      if (iconv.encodingExists(detectedEncoding)) {
+        const decoded = iconv.decode(buffer, detectedEncoding);
+        // Verify if the decoded content looks valid (contains no replacement characters)
+        if (!decoded.includes('\uFFFD')) {
+          console.log(`  Detected encoding: ${detectedEncoding} for ${path.basename(filePath)}`);
+          return decoded;
+        }
+      }
+    } catch {
+      // Fall through to try other encodings
+    }
+  }
+  
+  // Try common Chinese encodings in order of likelihood
+  const encodingsToTry = ['GBK', 'GB18030', 'GB2312', 'Big5'];
+  
+  for (const encoding of encodingsToTry) {
+    try {
+      if (iconv.encodingExists(encoding)) {
+        const decoded = iconv.decode(buffer, encoding);
+        // Check if decoded content looks valid (contains Chinese characters and no replacement chars)
+        if (!decoded.includes('\uFFFD') && /[\u4e00-\u9fff]/.test(decoded)) {
+          console.log(`  Fallback encoding: ${encoding} for ${path.basename(filePath)}`);
+          return decoded;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  
+  // Last resort: return as UTF-8 with invalid bytes replaced
+  // This provides readable ASCII content while marking corrupted bytes
+  console.warn(`  Warning: Could not detect valid encoding for ${path.basename(filePath)}, using UTF-8 with replacement`);
+  
+  // Use a custom replacement that removes invalid byte sequences
+  // while keeping the ASCII parts readable
+  let result = '';
+  let i = 0;
+  while (i < buffer.length) {
+    const byte = buffer[i];
+    if (byte < 0x80) {
+      // ASCII character
+      result += String.fromCharCode(byte);
+      i++;
+    } else {
+      // Non-ASCII byte - skip it (remove garbled characters)
+      i++;
+    }
+  }
+  
+  return result;
+}
+
 function readReadme(dirPath: string): string | undefined {
   const readmePath = path.join(dirPath, 'readme.md');
   if (fs.existsSync(readmePath)) {
-    return fs.readFileSync(readmePath, 'utf-8');
+    return readFileWithEncoding(readmePath);
   }
   return undefined;
 }
@@ -39,7 +126,7 @@ function readReadme(dirPath: string): string | undefined {
 function readTags(dirPath: string): string[] | undefined {
   const tagsPath = path.join(dirPath, 'tags.txt');
   if (fs.existsSync(tagsPath)) {
-    const content = fs.readFileSync(tagsPath, 'utf-8').trim();
+    const content = readFileWithEncoding(tagsPath).trim();
     if (content) {
       return content.split('\n').map(tag => tag.trim()).filter(tag => tag);
     }
