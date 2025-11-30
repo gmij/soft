@@ -207,7 +207,11 @@ const HomePage: React.FC = () => {
                     ellipsis={{ rows: 2 }}
                     style={{ marginBottom: 12, minHeight: 44 }}
                   >
-                    {software.description ? stripMarkdown(software.description) : t('common.noDescription')}
+                    {(() => {
+                      // Use software description, or fallback to latest version's description
+                      const description = software.description || latestVersion?.description;
+                      return description ? stripMarkdown(description) : t('common.noDescription');
+                    })()}
                   </Paragraph>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
