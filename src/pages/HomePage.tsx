@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Typography, Empty, Spin, Tag, Space, Button, message } from 'antd';
-import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined, LinkOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Software, SoftwareData, TagType } from '../types';
 import { TAG_COLORS } from '../types';
@@ -240,17 +240,29 @@ const HomePage: React.FC = () => {
                       {latestVersion?.version || t('common.unknownVersion')}
                     </Tag>
                     <Tag
-                      icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
-                      color={downloadType === 'p2p' ? 'orange' : 'green'}
+                      icon={downloadType === 'p2p' ? <CloudOutlined /> : downloadType === 'official' ? <LinkOutlined /> : <DownloadOutlined />}
+                      color={downloadType === 'p2p' ? 'orange' : downloadType === 'official' ? 'purple' : 'green'}
                     >
-                      {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
+                      {downloadType === 'p2p' ? t('common.p2pDownload') : downloadType === 'official' ? t('common.officialDownload') : t('common.directDownload')}
                     </Tag>
                   </div>
 
                   {/* Download button */}
                   {latestVersion && (
                     <div style={{ textAlign: 'center' }}>
-                      {downloadType === 'p2p' && latestVersion.p2pLink ? (
+                      {downloadType === 'official' && latestVersion.officialLink ? (
+                        <Button
+                          type="primary"
+                          icon={<LinkOutlined />}
+                          href={latestVersion.officialLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          block
+                        >
+                          {t('common.goToOfficialSite')}
+                        </Button>
+                      ) : downloadType === 'p2p' && latestVersion.p2pLink ? (
                         <Button
                           type="primary"
                           icon={<CopyOutlined />}

@@ -11,6 +11,7 @@
     "unknownVersion": "Unknown version",
     "directDownload": "Direct Download",
     "p2pDownload": "P2P Download",
+    "officialDownload": "Official Download",
     "p2p": "P2P",
     "download": "Download",
     "copyLink": "Copy Link",
@@ -22,7 +23,9 @@
     "latestVersion": "Latest",
     "versionNotes": "Version Notes",
     "noDownloadFiles": "No download files",
-    "p2pAddress": "P2P Download Address:"
+    "p2pAddress": "P2P Download Address:",
+    "goToOfficialSite": "Go to Official Site",
+    "officialSiteHint": "Click the button below to visit the official download page"
   },
   "home": {
     "title": "Software List",

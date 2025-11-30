@@ -17,9 +17,10 @@ interface SoftwareVersion {
   version: string;
   description?: string;
   descriptions?: LocalizedDescription;
-  downloadType: 'direct' | 'p2p';
+  downloadType: 'direct' | 'p2p' | 'official';
   files?: string[];
   p2pLink?: string;
+  officialLink?: string;
 }
 
 interface Software {
@@ -212,9 +213,24 @@ function scanSoftwareDirectory(): SoftwareData {
 
     const versions: SoftwareVersion[] = [];
 
+    // Check for official.txt at software level (for software with no version subdirectories)
+    const softwareOfficialFile = path.join(softwarePath, 'official.txt');
+    if (versionDirs.length === 0 && fs.existsSync(softwareOfficialFile)) {
+      // Software-level official download (no version subdirectory needed)
+      const officialLink = fs.readFileSync(softwareOfficialFile, 'utf-8').trim();
+      versions.push({
+        version: 'latest',
+        description: softwareDescription,
+        descriptions: softwareDescriptions,
+        downloadType: 'official',
+        officialLink,
+      });
+    }
+
     for (const versionName of versionDirs) {
       const versionPath = path.join(softwarePath, versionName);
       const linkFile = path.join(versionPath, 'link.txt');
+      const officialFile = path.join(versionPath, 'official.txt');
       
       // Read version-level multilingual descriptions
       const versionLocalizedDesc = readLocalizedReadme(versionPath, convertToUtf8);
@@ -235,7 +251,17 @@ function scanSoftwareDirectory(): SoftwareData {
       // Legacy: single description for backward compatibility
       const versionDescription = readReadme(versionPath, convertToUtf8) || softwareDescription;
 
-      if (fs.existsSync(linkFile)) {
+      if (fs.existsSync(officialFile)) {
+        // 官网下载
+        const officialLink = fs.readFileSync(officialFile, 'utf-8').trim();
+        versions.push({
+          version: versionName,
+          description: versionDescription,
+          descriptions: versionDescriptions,
+          downloadType: 'official',
+          officialLink,
+        });
+      } else if (fs.existsSync(linkFile)) {
         // P2P 下载
         const p2pLink = fs.readFileSync(linkFile, 'utf-8').trim();
         versions.push({
