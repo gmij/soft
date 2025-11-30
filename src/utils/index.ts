@@ -29,17 +29,18 @@ export function stripMarkdown(markdown: string): string {
   if (!markdown) return '';
   
   return markdown
+    // Remove code blocks but keep content
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, '$1')
     // Remove headers (# ## ### etc.)
     .replace(/^#{1,6}\s+/gm, '')
-    // Remove bold/italic markers
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/__([^_]+)__/g, '$1')
-    .replace(/_([^_]+)_/g, '$1')
+    // Remove bold markers (process double before single)
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    // Remove italic markers
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
     // Remove inline code
     .replace(/`([^`]+)`/g, '$1')
-    // Remove code blocks
-    .replace(/```[\s\S]*?```/g, '')
     // Remove links but keep text
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     // Remove images
