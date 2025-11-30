@@ -1,4 +1,3 @@
-```markdown
 # Ventoy
 
 Ventoy 是一款开源的多启动工具，能够帮助用户轻松创建可启动的 USB 设备。只需将 ISO 文件拷贝到 U盘中，无需格式化即可直接启动，支持多种操作系统和工具镜像。
@@ -43,4 +42,3 @@ A: Ventoy 适合经常需要制作可启动 U盘的 IT 工作者、开发人员�
 - [官方网站](https://www.ventoy.net)
 - [源代码仓库](https://github.com/ventoy/Ventoy)
 - [问题反馈](https://github.com/ventoy/Ventoy/issues)
-```

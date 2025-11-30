@@ -1,4 +1,3 @@
-```markdown
 # ImDisk Toolkit
 
 ImDisk Toolkit is a powerful and versatile software suite designed for creating, mounting, and managing virtual disks and RAM disks on Windows systems. It simplifies the process of handling disk images, allowing users to efficiently manage disk-based data without requiring physical media.
@@ -43,4 +42,3 @@ A: Yes, ImDisk Toolkit supports mounting ISO files and other common disk image f
 
 **Q: Is ImDisk Toolkit free to use?**  
 A: Yes, ImDisk Toolkit is available as a free software suite, providing powerful disk management tools at no cost.
-```
