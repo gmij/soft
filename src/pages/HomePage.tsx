@@ -5,7 +5,7 @@ import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined } from 
 import { useTranslation } from 'react-i18next';
 import type { Software, SoftwareData, TagType } from '../types';
 import { TAG_COLORS } from '../types';
-import { fetchSoftwareData } from '../utils';
+import { fetchSoftwareData, stripMarkdown } from '../utils';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -207,7 +207,7 @@ const HomePage: React.FC = () => {
                     ellipsis={{ rows: 2 }}
                     style={{ marginBottom: 12, minHeight: 44 }}
                   >
-                    {software.description || t('common.noDescription')}
+                    {software.description ? stripMarkdown(software.description) : t('common.noDescription')}
                   </Paragraph>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
