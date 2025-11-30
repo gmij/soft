@@ -25,3 +25,4 @@ public/data/software.json
 *.njsproj
 *.sln
 *.sw?
+/start_claude_crswj5apikey_1.bat
