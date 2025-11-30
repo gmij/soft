@@ -6,9 +6,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
+  models: read
 
 concurrency:
   group: 'pages'
@@ -29,6 +30,54 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Check for resources without readme.md
+        id: check_readme
+        run: |
+          # Find all resource directories in down/ that don't have readme.md
+          MISSING_READMES=""
+          for dir in down/*/; do
+            if [ -d "$dir" ]; then
+              if [ ! -f "${dir}readme.md" ] && [ ! -f "${dir}readme.zh-CN.md" ] && [ ! -f "${dir}readme.en.md" ]; then
+                MISSING_READMES="$MISSING_READMES$dir\n"
+              fi
+            fi
+          done
+          
+          if [ -n "$MISSING_READMES" ]; then
+            echo "Found resources without readme.md:"
+            echo -e "$MISSING_READMES"
+            echo "needs_generation=true" >> $GITHUB_OUTPUT
+          else
+            echo "All resources have readme.md files"
+            echo "needs_generation=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate readme files for resources
+        if: steps.check_readme.outputs.needs_generation == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_ENDPOINT: https://models.inference.ai.azure.com
+          LLM_MODEL: gpt-4o
+        run: npx tsx scripts/generate-readme.ts
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add down/
+          git commit -m "docs: auto-generate readme.md for resources"
+          git push
 
       - name: Build
         run: npm run build
