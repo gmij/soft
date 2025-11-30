@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import zhCN from 'antd/locale/zh_CN';
 import enUS from 'antd/locale/en_US';
 import { MainLayout } from './components';
-import { HomePage, SoftwareDetailPage } from './pages';
+import { HomePage, SoftwareDetailPage, AboutPage } from './pages';
 import './i18n';
 import './App.css';
 
@@ -22,6 +22,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/software/:name" element={<SoftwareDetailPage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
           </MainLayout>
         </HashRouter>

@@ -1,5 +1,5 @@
 import { Layout, Typography, theme, Space } from 'antd';
-import { GithubOutlined } from '@ant-design/icons';
+import { GithubOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -36,6 +36,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Title>
         </a>
         <Space size="middle">
+          <AntLink
+            href={`${import.meta.env.BASE_URL}#/about`}
+            style={{ color: '#fff', fontSize: 14 }}
+          >
+            <InfoCircleOutlined style={{ marginRight: 4 }} />
+            {t('common.about')}
+          </AntLink>
           <LanguageSwitcher />
           <AntLink
             href="https://github.com/gmij/soft"

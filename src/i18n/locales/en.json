@@ -19,6 +19,7 @@
     "copyFailed": "Copy failed, please copy manually",
     "backToHome": "Back to Home",
     "home": "Home",
+    "about": "About",
     "notFound": "Software not found",
     "latestVersion": "Latest",
     "versionNotes": "Version Notes",
@@ -50,5 +51,21 @@
     "security": "Security",
     "game": "Games",
     "other": "Other"
+  },
+  "about": {
+    "title": "About This Site",
+    "subtitle": "A Clean and Safe Software Download Platform",
+    "section1Title": "🔧 The IT Dilemma",
+    "section1Content": "Every IT professional knows the struggle: being the go-to person for fixing computers and installing software for friends and family. We understand the importance of a clean system and the headaches that bloatware can cause.",
+    "section2Title": "💡 Our Purpose",
+    "section2Content": "This website was created with a simple goal: to provide a reliable software download source for those who may not be tech-savvy. Here, you can find clean, official software or carefully curated portable versions without worrying about bundled software or annoying ads.",
+    "section3Title": "🎯 Our Promise",
+    "section3Content": "We promise to provide clean and safe software downloads. All software comes from official channels or has been carefully vetted, ensuring no bundled software, adware, or malicious code. Peace of mind for you, your family, and friends.",
+    "feature1": "Bundle-Free",
+    "feature1Desc": "All software is carefully vetted with no bundled programs",
+    "feature2": "Trusted Sources",
+    "feature2Desc": "Software from official channels or verified sources only",
+    "feature3": "Portable Options",
+    "feature3Desc": "Green and portable versions available, ready to use without installation"
   }
 }
