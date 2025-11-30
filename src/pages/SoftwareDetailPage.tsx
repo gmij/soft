@@ -318,7 +318,12 @@ const SoftwareDetailPage: React.FC = () => {
                     type="primary"
                     size="large"
                     icon={<DownloadOutlined />}
-                    onClick={() => triggerDownload(getDownloadUrl(software.name, software.versions[0].version, software.versions[0].files![0]))}
+                    onClick={() => {
+                      const files = software.versions[0].files;
+                      if (files && files.length > 0) {
+                        triggerDownload(getDownloadUrl(software.name, software.versions[0].version, files[0]));
+                      }
+                    }}
                   >
                     {t('detail.downloadLatest')}
                   </Button>

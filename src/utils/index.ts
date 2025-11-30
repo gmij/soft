@@ -108,11 +108,13 @@ export function updatePageMeta(options: {
     twitterDescription.setAttribute('content', options.ogDescription || options.description);
   }
   
-  // Update canonical URL
-  if (options.canonicalPath) {
+  // Update canonical URL using base URL from window location
+  if (options.canonicalPath !== undefined) {
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
-      canonical.setAttribute('href', `https://gmij.github.io/soft/${options.canonicalPath}`);
+      // Use the current origin and base path for canonical URL
+      const baseUrl = `${window.location.origin}${import.meta.env.BASE_URL}`;
+      canonical.setAttribute('href', `${baseUrl}${options.canonicalPath}`);
     }
   }
 }
