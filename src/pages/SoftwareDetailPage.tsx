@@ -182,12 +182,22 @@ const SoftwareDetailPage: React.FC = () => {
     return <Empty description={t('common.noDownloadFiles')} />;
   };
 
+  // Get software-level description for comparison with version descriptions
+  const softwareDescription = getLocalizedDescription(
+    software.descriptions || software.versions[0]?.descriptions,
+    software.description || software.versions[0]?.description,
+    i18n.language
+  );
+
   const collapseItems = software.versions.map((version, index) => {
     const versionDescription = getLocalizedDescription(
       version.descriptions,
       version.description,
       i18n.language
     );
+    
+    // Only show version description if it's different from software-level description
+    const showVersionDescription = versionDescription && versionDescription !== softwareDescription;
     
     return {
       key: version.version,
@@ -205,7 +215,7 @@ const SoftwareDetailPage: React.FC = () => {
       ),
       children: (
         <div>
-          {versionDescription && (
+          {showVersionDescription && (
             <div style={{ marginBottom: 16 }}>
               <Title level={5}>{t('common.versionNotes')}</Title>
               <div className="markdown-body">
@@ -245,9 +255,6 @@ const SoftwareDetailPage: React.FC = () => {
       <Card style={{ marginBottom: 24 }}>
         <Row gutter={24}>
           <Col xs={24} md={18}>
-            <Title level={2} style={{ marginBottom: 8 }}>
-              {software.name}
-            </Title>
             {/* 显示软件标签 */}
             {software.tags && software.tags.length > 0 && (
               <div style={{ marginBottom: 16 }}>
@@ -262,24 +269,15 @@ const SoftwareDetailPage: React.FC = () => {
                 ))}
               </div>
             )}
-            {(() => {
-              // Try software-level description first, then fall back to first version's description
-              const latestVersion = software.versions[0];
-              const softwareDescription = getLocalizedDescription(
-                software.descriptions || latestVersion?.descriptions,
-                software.description || latestVersion?.description,
-                i18n.language
-              );
-              return softwareDescription ? (
-                <div className="markdown-body">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {softwareDescription}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
-              );
-            })()}
+            {softwareDescription ? (
+              <div className="markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {softwareDescription}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <Paragraph type="secondary">{t('common.noDescription')}</Paragraph>
+            )}
           </Col>
           <Col xs={24} md={6}>
             {/* 下载最新版本按钮 */}
