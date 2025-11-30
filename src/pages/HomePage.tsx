@@ -117,6 +117,18 @@ const HomePage: React.FC = () => {
     return `${import.meta.env.BASE_URL}down/${encodeURIComponent(softwareName)}/${encodeURIComponent(version)}/${encodeURIComponent(fileName)}`;
   };
 
+  // Helper function to get download type icon, color, and label
+  const getDownloadTypeInfo = (downloadType: string) => {
+    switch (downloadType) {
+      case 'p2p':
+        return { icon: <CloudOutlined />, color: 'orange', label: t('common.p2pDownload') };
+      case 'official':
+        return { icon: <LinkOutlined />, color: 'purple', label: t('common.officialDownload') };
+      default:
+        return { icon: <DownloadOutlined />, color: 'green', label: t('common.directDownload') };
+    }
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -176,6 +188,7 @@ const HomePage: React.FC = () => {
           {filteredSoftwareList.map((software) => {
             const latestVersion = software.versions[0];
             const downloadType = latestVersion?.downloadType;
+            const downloadTypeInfo = getDownloadTypeInfo(downloadType || 'direct');
 
             // Handle card click navigation
             const handleCardClick = () => {
@@ -240,10 +253,10 @@ const HomePage: React.FC = () => {
                       {latestVersion?.version || t('common.unknownVersion')}
                     </Tag>
                     <Tag
-                      icon={downloadType === 'p2p' ? <CloudOutlined /> : downloadType === 'official' ? <LinkOutlined /> : <DownloadOutlined />}
-                      color={downloadType === 'p2p' ? 'orange' : downloadType === 'official' ? 'purple' : 'green'}
+                      icon={downloadTypeInfo.icon}
+                      color={downloadTypeInfo.color}
                     >
-                      {downloadType === 'p2p' ? t('common.p2pDownload') : downloadType === 'official' ? t('common.officialDownload') : t('common.directDownload')}
+                      {downloadTypeInfo.label}
                     </Tag>
                   </div>
 

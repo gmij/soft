@@ -252,7 +252,7 @@ function scanSoftwareDirectory(): SoftwareData {
       const versionDescription = readReadme(versionPath, convertToUtf8) || softwareDescription;
 
       if (fs.existsSync(officialFile)) {
-        // 官网下载
+        // Official website download
         const officialLink = fs.readFileSync(officialFile, 'utf-8').trim();
         versions.push({
           version: versionName,
@@ -262,7 +262,7 @@ function scanSoftwareDirectory(): SoftwareData {
           officialLink,
         });
       } else if (fs.existsSync(linkFile)) {
-        // P2P 下载
+        // P2P download
         const p2pLink = fs.readFileSync(linkFile, 'utf-8').trim();
         versions.push({
           version: versionName,
@@ -272,7 +272,7 @@ function scanSoftwareDirectory(): SoftwareData {
           p2pLink,
         });
       } else {
-        // 直接下载
+        // Direct download
         const files = fs.readdirSync(versionPath)
           .filter(file => {
             const filePath = path.join(versionPath, file);
