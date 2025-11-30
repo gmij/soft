@@ -27,11 +27,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # GITHUB_TOKEN is automatically provided by GitHub Actions, no manual configuration needed.
+      # To use GitHub Models API, ensure GitHub Models is enabled for your repository.
+      # You can change LLM_MODEL to other models like 'gpt-4.1', 'o4-mini', 'gpt-4o', etc.
       - name: Generate readme files for resources
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_API_ENDPOINT: https://models.inference.ai.azure.com
-          LLM_MODEL: gpt-4.1
+          LLM_MODEL: gpt-4o
         run: npx tsx scripts/generate-readme.ts
 
       - name: Check for changes

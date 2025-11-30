@@ -115,7 +115,7 @@ function readTemplates(): { zhTemplate: string; enTemplate: string } {
 async function callLLM(prompt: string): Promise<string> {
   const apiKey = process.env.GITHUB_TOKEN || process.env.OPENAI_API_KEY;
   const apiEndpoint = process.env.LLM_API_ENDPOINT || 'https://models.inference.ai.azure.com';
-  const modelName = process.env.LLM_MODEL || 'gpt-4.1';
+  const modelName = process.env.LLM_MODEL || 'gpt-4o';
 
   if (!apiKey) {
     throw new Error('No API key found. Set GITHUB_TOKEN or OPENAI_API_KEY environment variable.');
