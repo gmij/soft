@@ -64,7 +64,10 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          if git diff --quiet HEAD; then
+          # Add all down/ files to staging to detect new files
+          git add down/
+          # Check if there are staged changes (including new files)
+          if git diff --cached --quiet; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
@@ -75,7 +78,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add down/
+          # Files are already staged from check_changes step
           git commit -m "docs: auto-generate readme.md for resources"
           git push
 
