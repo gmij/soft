@@ -1,4 +1,4 @@
-import type { SoftwareData } from '../types';
+import type { SoftwareData, LocalizedDescription } from '../types';
 
 // 获取软件数据
 export async function fetchSoftwareData(): Promise<SoftwareData> {
@@ -7,6 +7,116 @@ export async function fetchSoftwareData(): Promise<SoftwareData> {
     throw new Error('Failed to fetch software data');
   }
   return response.json();
+}
+
+/**
+ * Get the description for the current language
+ * Falls back to any available language if the preferred language is not available
+ */
+export function getLocalizedDescription(
+  descriptions: LocalizedDescription | undefined,
+  legacyDescription: string | undefined,
+  language: string
+): string | undefined {
+  // If we have multilingual descriptions, use them
+  if (descriptions) {
+    // Map i18next language code to our keys
+    const langKey = language === 'en' ? 'en' : 'zh-CN';
+    const fallbackKey = language === 'en' ? 'zh-CN' : 'en';
+    
+    // Try preferred language first, then fallback
+    return descriptions[langKey] || descriptions[fallbackKey] || legacyDescription;
+  }
+  
+  // Fall back to legacy single description
+  return legacyDescription;
+}
+
+// Hidden iframe for downloads to avoid visual flash
+let downloadIframe: HTMLIFrameElement | null = null;
+
+/**
+ * Trigger file download using a hidden iframe to avoid popup flash
+ */
+export function triggerDownload(url: string): void {
+  // Create iframe if it doesn't exist
+  if (!downloadIframe) {
+    downloadIframe = document.createElement('iframe');
+    downloadIframe.style.display = 'none';
+    downloadIframe.setAttribute('aria-hidden', 'true');
+    downloadIframe.name = 'download-frame';
+    document.body.appendChild(downloadIframe);
+  }
+  
+  // For direct file downloads, use iframe
+  // This avoids the visual flash of window.open
+  downloadIframe.src = url;
+}
+
+/**
+ * Update page SEO meta tags dynamically
+ */
+export function updatePageMeta(options: {
+  title: string;
+  description: string;
+  keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  canonicalPath?: string;
+}): void {
+  // Update title
+  document.title = options.title;
+  
+  // Update meta description
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute('content', options.description);
+  }
+  
+  // Update meta keywords
+  if (options.keywords) {
+    let metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (!metaKeywords) {
+      metaKeywords = document.createElement('meta');
+      metaKeywords.setAttribute('name', 'keywords');
+      document.head.appendChild(metaKeywords);
+    }
+    metaKeywords.setAttribute('content', options.keywords);
+  }
+  
+  // Update Open Graph title
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) {
+    ogTitle.setAttribute('content', options.ogTitle || options.title);
+  }
+  
+  // Update Open Graph description
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  if (ogDescription) {
+    ogDescription.setAttribute('content', options.ogDescription || options.description);
+  }
+  
+  // Update Twitter title
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+  if (twitterTitle) {
+    twitterTitle.setAttribute('content', options.ogTitle || options.title);
+  }
+  
+  // Update Twitter description
+  const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+  if (twitterDescription) {
+    twitterDescription.setAttribute('content', options.ogDescription || options.description);
+  }
+  
+  // Update canonical URL using base URL from window location
+  if (options.canonicalPath !== undefined) {
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      // Use the current origin and base path for canonical URL
+      const baseUrl = `${window.location.origin}${import.meta.env.BASE_URL}`;
+      canonical.setAttribute('href', `${baseUrl}${options.canonicalPath}`);
+    }
+  }
 }
 
 // 格式化文件大小

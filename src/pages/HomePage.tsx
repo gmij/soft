@@ -5,17 +5,34 @@ import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined } from 
 import { useTranslation } from 'react-i18next';
 import type { Software, SoftwareData, TagType } from '../types';
 import { TAG_COLORS } from '../types';
-import { fetchSoftwareData, stripMarkdown } from '../utils';
+import { fetchSoftwareData, stripMarkdown, getLocalizedDescription, triggerDownload, updatePageMeta } from '../utils';
 
 const { Title, Paragraph, Text } = Typography;
 
 const HomePage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [softwareList, setSoftwareList] = useState<Software[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  // Update SEO meta tags when language changes
+  useEffect(() => {
+    const isEnglish = i18n.language === 'en';
+    updatePageMeta({
+      title: isEnglish 
+        ? 'Software Download - Safe & Reliable Software Download Platform'
+        : '软件下载站 - 安全可靠的软件下载平台',
+      description: isEnglish
+        ? 'Download safe and free software including system tools, development tools, office applications. Fast, secure, ad-free.'
+        : '提供常用软件的安全下载服务，包括系统工具、开发工具、办公软件等。免费、快速、无广告。',
+      keywords: isEnglish
+        ? 'software download,free software,system tools,development tools,office software'
+        : '软件下载,免费软件,系统工具,开发工具,办公软件,装机必备,绿色软件',
+      canonicalPath: ''
+    });
+  }, [i18n.language]);
 
   useEffect(() => {
     fetchSoftwareData()
@@ -169,7 +186,7 @@ const HomePage: React.FC = () => {
             const handleDownloadClick = (e: React.MouseEvent) => {
               e.stopPropagation();
               if (latestVersion.files && latestVersion.files.length > 0) {
-                window.open(getDownloadUrl(software.name, latestVersion.version, latestVersion.files[0]), '_blank');
+                triggerDownload(getDownloadUrl(software.name, latestVersion.version, latestVersion.files[0]));
               }
             };
 
@@ -208,8 +225,12 @@ const HomePage: React.FC = () => {
                     style={{ marginBottom: 12, minHeight: 44 }}
                   >
                     {(() => {
-                      // Use software description, or fallback to latest version's description
-                      const description = software.description || latestVersion?.description;
+                      // Use localized description, falling back to legacy description
+                      const description = getLocalizedDescription(
+                        software.descriptions || latestVersion?.descriptions,
+                        software.description || latestVersion?.description,
+                        i18n.language
+                      );
                       return description ? stripMarkdown(description) : t('common.noDescription');
                     })()}
                   </Paragraph>
