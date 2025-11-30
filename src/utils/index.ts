@@ -23,3 +23,37 @@ export function getFileExtension(filename: string): string {
   const ext = filename.split('.').pop();
   return ext ? ext.toUpperCase() : '';
 }
+
+// 将 Markdown 内容转换为纯文本（用于预览）
+export function stripMarkdown(markdown: string): string {
+  if (!markdown) return '';
+  
+  return markdown
+    // Remove code blocks but keep content
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, '$1')
+    // Remove headers (# ## ### etc.)
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bold markers (process double before single)
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    // Remove italic markers
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    // Remove inline code
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove links but keep text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove images
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    // Remove horizontal rules
+    .replace(/^[-*_]{3,}\s*$/gm, '')
+    // Remove list markers
+    .replace(/^[\s]*[-*+]\s+/gm, '')
+    .replace(/^[\s]*\d+\.\s+/gm, '')
+    // Remove blockquotes
+    .replace(/^>\s+/gm, '')
+    // Collapse multiple newlines and spaces
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
