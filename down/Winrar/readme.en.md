@@ -1,4 +1,3 @@
-```markdown
 # WinRAR
 
 WinRAR is a powerful file compression and archiving tool that allows users to compress large files, extract archives, and manage compressed file formats efficiently. It supports a wide range of formats, including RAR, ZIP, and many others, making it an essential utility for both personal and professional use.
@@ -50,4 +49,3 @@ A: Yes, WinRAR supports large file sizes and can split them into smaller parts f
 ## Links
 
 - [Official Website](https://www.rarlab.com)
-```

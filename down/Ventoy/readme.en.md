@@ -1,4 +1,3 @@
-```markdown
 # Ventoy
 
 Ventoy is an open-source tool that allows users to create bootable USB drives for ISO/WIM/IMG/VHD(x)/EFI files. Instead of formatting the USB drive repeatedly, you can simply copy and paste files onto the drive, making it a highly efficient and user-friendly solution for bootable media creation.
@@ -53,4 +52,3 @@ A: Yes, Ventoy is open-source software, ensuring transparency and allowing users
 - [Official Website](https://www.ventoy.net)
 - [Source Code Repository](https://github.com/ventoy/Ventoy)
 - [Issue Tracker](https://github.com/ventoy/Ventoy/issues)
-```

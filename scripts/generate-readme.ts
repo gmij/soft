@@ -159,6 +159,24 @@ async function callLLM(prompt: string, systemPrompt: string): Promise<string> {
 }
 
 /**
+ * Strip markdown code fence wrappers from LLM output
+ * LLMs sometimes wrap markdown content in ```markdown ... ``` code fences
+ */
+function stripMarkdownCodeFence(content: string): string {
+  const trimmed = content.trim();
+  
+  // Check if content starts with ```markdown or ```md and ends with ```
+  const markdownFencePattern = /^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/;
+  const match = trimmed.match(markdownFencePattern);
+  
+  if (match) {
+    return match[1].trim();
+  }
+  
+  return trimmed;
+}
+
+/**
  * Generate Chinese readme.md for a resource using LLM
  */
 async function generateChineseReadme(resource: ResourceInfo, templates: { zhTemplate: string; enTemplate: string }): Promise<void> {
@@ -213,7 +231,8 @@ A: [具体回答]`;
 
   const systemPrompt = '你是一个技术文档撰写专家，擅长为软件编写清晰、专业的说明文档。你了解SEO和GEO（Generative Engine Optimization）优化技巧，能够创建便于搜索引擎和AI理解的内容。请用中文回复。';
 
-  const content = await callLLM(prompt, systemPrompt);
+  const rawContent = await callLLM(prompt, systemPrompt);
+  const content = stripMarkdownCodeFence(rawContent);
   const readmePath = path.join(resource.path, 'readme.md');
   fs.writeFileSync(readmePath, content, 'utf-8');
   console.log(`    ✓ Generated: ${readmePath}`);
@@ -274,7 +293,8 @@ A: [Specific answer]`;
 
   const systemPrompt = 'You are a technical documentation expert skilled at writing clear, professional software documentation. You understand SEO and GEO (Generative Engine Optimization) techniques to create content that is easily understood by search engines and AI. Please respond in English.';
 
-  const content = await callLLM(prompt, systemPrompt);
+  const rawContent = await callLLM(prompt, systemPrompt);
+  const content = stripMarkdownCodeFence(rawContent);
   const readmePath = path.join(resource.path, 'readme.en.md');
   fs.writeFileSync(readmePath, content, 'utf-8');
   console.log(`    ✓ Generated: ${readmePath}`);
