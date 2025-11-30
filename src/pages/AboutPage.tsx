@@ -58,35 +58,37 @@ const AboutPage: React.FC = () => {
       </div>
 
       <Card style={{ marginBottom: 24 }}>
-        <Title level={4}>{t('about.section1Title')}</Title>
+        {/* IT Dilemma section - same for both languages */}
+        <Title level={4}>{t('about.itDilemmaTitle')}</Title>
         <Paragraph style={{ fontSize: 15, lineHeight: 1.8 }}>
-          {t('about.section1Content')}
+          {t('about.itDilemmaContent')}
         </Paragraph>
 
-        {/* 360 related content - only show in Chinese */}
+        {/* Bloatware problem section - only show in Chinese (360 content) */}
         {isChinese && (
           <>
             <Divider />
-            <Title level={4}>{t('about.section2Title')}</Title>
+            <Title level={4}>{t('about.bloatwareProblemTitle')}</Title>
             <Paragraph style={{ fontSize: 15, lineHeight: 1.8 }}>
-              {t('about.section2Content')}
+              {t('about.bloatwareProblemContent')}
             </Paragraph>
           </>
         )}
 
         <Divider />
 
-        {/* Section 3 for Chinese is 建站初衷, for English it's Our Purpose */}
-        <Title level={4}>{isChinese ? t('about.section3Title') : t('about.section2Title')}</Title>
+        {/* Purpose section - same for both languages */}
+        <Title level={4}>{t('about.purposeTitle')}</Title>
         <Paragraph style={{ fontSize: 15, lineHeight: 1.8 }}>
-          {isChinese ? t('about.section3Content') : t('about.section2Content')}
+          {t('about.purposeContent')}
         </Paragraph>
 
         <Divider />
 
-        <Title level={4}>{isChinese ? t('about.section4Title') : t('about.section3Title')}</Title>
+        {/* Promise section - same for both languages */}
+        <Title level={4}>{t('about.promiseTitle')}</Title>
         <Paragraph style={{ fontSize: 15, lineHeight: 1.8 }}>
-          {isChinese ? t('about.section4Content') : t('about.section3Content')}
+          {t('about.promiseContent')}
         </Paragraph>
       </Card>
 
