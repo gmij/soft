@@ -25,34 +25,11 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
-import type { Software, SoftwareData, SoftwareVersion, TagType, LocalizedDescription } from '../types';
+import type { Software, SoftwareData, SoftwareVersion, TagType } from '../types';
 import { TAG_COLORS } from '../types';
-import { fetchSoftwareData } from '../utils';
+import { fetchSoftwareData, getLocalizedDescription, triggerDownload, updatePageMeta, stripMarkdown } from '../utils';
 
 const { Title, Paragraph, Text } = Typography;
-
-/**
- * Get the description for the current language
- * Falls back to any available language if the preferred language is not available
- */
-function getLocalizedDescription(
-  descriptions: LocalizedDescription | undefined,
-  legacyDescription: string | undefined,
-  language: string
-): string | undefined {
-  // If we have multilingual descriptions, use them
-  if (descriptions) {
-    // Map i18next language code to our keys
-    const langKey = language === 'en' ? 'en' : 'zh-CN';
-    const fallbackKey = language === 'en' ? 'zh-CN' : 'en';
-    
-    // Try preferred language first, then fallback
-    return descriptions[langKey] || descriptions[fallbackKey] || legacyDescription;
-  }
-  
-  // Fall back to legacy single description
-  return legacyDescription;
-}
 
 const SoftwareDetailPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -60,6 +37,38 @@ const SoftwareDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [software, setSoftware] = useState<Software | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Update SEO meta tags when software data or language changes
+  useEffect(() => {
+    if (!software) return;
+    
+    // Try software-level description first, then fall back to first version's description
+    const latestVersion = software.versions[0];
+    const description = getLocalizedDescription(
+      software.descriptions || latestVersion?.descriptions,
+      software.description || latestVersion?.description,
+      i18n.language
+    );
+    const plainDescription = description ? stripMarkdown(description).substring(0, 160) : '';
+    const isEnglish = i18n.language === 'en';
+    
+    updatePageMeta({
+      title: isEnglish 
+        ? `${software.name} Download - Software Download`
+        : `${software.name} 下载 - 软件下载站`,
+      description: plainDescription || (isEnglish 
+        ? `Download ${software.name} - latest version available for free download.`
+        : `下载 ${software.name} - 最新版本免费下载。`),
+      keywords: isEnglish
+        ? `${software.name},download,software,free download`
+        : `${software.name},下载,软件,免费下载`,
+      ogTitle: isEnglish 
+        ? `Download ${software.name}`
+        : `下载 ${software.name}`,
+      ogDescription: plainDescription,
+      canonicalPath: `#/software/${encodeURIComponent(software.name)}`
+    });
+  }, [software, i18n.language]);
 
   useEffect(() => {
     if (!name) return;
@@ -153,8 +162,7 @@ const SoftwareDetailPage: React.FC = () => {
                 <Button
                   type="link"
                   icon={<DownloadOutlined />}
-                  href={getDownloadUrl(software.name, version.version, file)}
-                  target="_blank"
+                  onClick={() => triggerDownload(getDownloadUrl(software.name, version.version, file))}
                   key="download"
                 >
                   {t('common.download')}
@@ -255,9 +263,11 @@ const SoftwareDetailPage: React.FC = () => {
               </div>
             )}
             {(() => {
+              // Try software-level description first, then fall back to first version's description
+              const latestVersion = software.versions[0];
               const softwareDescription = getLocalizedDescription(
-                software.descriptions,
-                software.description,
+                software.descriptions || latestVersion?.descriptions,
+                software.description || latestVersion?.description,
                 i18n.language
               );
               return softwareDescription ? (
@@ -308,8 +318,7 @@ const SoftwareDetailPage: React.FC = () => {
                     type="primary"
                     size="large"
                     icon={<DownloadOutlined />}
-                    href={getDownloadUrl(software.name, software.versions[0].version, software.versions[0].files[0])}
-                    target="_blank"
+                    onClick={() => triggerDownload(getDownloadUrl(software.name, software.versions[0].version, software.versions[0].files![0]))}
                   >
                     {t('detail.downloadLatest')}
                   </Button>

@@ -1,1 +1,0 @@
-magnet:?xt=urn:btih:EXAMPLE_HASH_HERE&dn=example-software-v2.0.0
