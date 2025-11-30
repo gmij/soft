@@ -165,8 +165,9 @@ async function callLLM(prompt: string, systemPrompt: string): Promise<string> {
 function stripMarkdownCodeFence(content: string): string {
   const trimmed = content.trim();
   
-  // Check if content starts with ```markdown or ```md and ends with ```
-  const markdownFencePattern = /^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/;
+  // Check if content starts with ```markdown, ```md, or just ``` and ends with ```
+  // Handles optional language label, extra text after label, and optional newline before closing fence
+  const markdownFencePattern = /^```(?:markdown|md)?[^\n]*\n([\s\S]*?)\n?```\s*$/;
   const match = trimmed.match(markdownFencePattern);
   
   if (match) {
