@@ -30,8 +30,8 @@ jobs:
       - name: Generate readme files for resources
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LLM_API_ENDPOINT: https://models.github.ai/inference
-          LLM_MODEL: openai/gpt-4.1
+          LLM_API_ENDPOINT: https://models.inference.ai.azure.com
+          LLM_MODEL: gpt-4.1
         run: npx tsx scripts/generate-readme.ts
 
       - name: Check for changes

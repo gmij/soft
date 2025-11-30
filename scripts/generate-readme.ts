@@ -41,7 +41,8 @@ function scanResourcesNeedingReadme(): ResourceInfo[] {
   for (const resourceName of resourceDirs) {
     const resourcePath = path.join(DOWN_DIR, resourceName);
     const hasReadme = fs.existsSync(path.join(resourcePath, 'readme.md')) ||
-                      fs.existsSync(path.join(resourcePath, 'readme.zh-CN.md'));
+                      fs.existsSync(path.join(resourcePath, 'readme.zh-CN.md')) ||
+                      fs.existsSync(path.join(resourcePath, 'readme.en.md'));
 
     // Scan versions
     const versionDirs = fs.readdirSync(resourcePath, { withFileTypes: true })
@@ -113,8 +114,8 @@ function readTemplates(): { zhTemplate: string; enTemplate: string } {
  */
 async function callLLM(prompt: string): Promise<string> {
   const apiKey = process.env.GITHUB_TOKEN || process.env.OPENAI_API_KEY;
-  const apiEndpoint = process.env.LLM_API_ENDPOINT || 'https://models.github.ai/inference';
-  const modelName = process.env.LLM_MODEL || 'openai/gpt-4.1';
+  const apiEndpoint = process.env.LLM_API_ENDPOINT || 'https://models.inference.ai.azure.com';
+  const modelName = process.env.LLM_MODEL || 'gpt-4.1';
 
   if (!apiKey) {
     throw new Error('No API key found. Set GITHUB_TOKEN or OPENAI_API_KEY environment variable.');
@@ -224,7 +225,8 @@ async function main() {
     try {
       await generateReadmeForResource(resource, templates);
       successCount++;
-    } catch {
+    } catch (error) {
+      console.error(`Error generating readme for ${resource.name}:`, error);
       failCount++;
     }
   }
