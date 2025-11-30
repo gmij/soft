@@ -11,6 +11,7 @@
     "unknownVersion": "未知版本",
     "directDownload": "直接下载",
     "p2pDownload": "P2P 下载",
+    "officialDownload": "官网下载",
     "p2p": "P2P",
     "download": "下载",
     "copyLink": "复制链接",
@@ -22,7 +23,9 @@
     "latestVersion": "最新版本",
     "versionNotes": "版本说明",
     "noDownloadFiles": "暂无下载文件",
-    "p2pAddress": "P2P 下载地址："
+    "p2pAddress": "P2P 下载地址：",
+    "goToOfficialSite": "前往官网下载",
+    "officialSiteHint": "点击下方按钮前往官方下载页面"
   },
   "home": {
     "title": "软件资源列表",

@@ -9,9 +9,10 @@ export interface SoftwareVersion {
   version: string;
   description?: string;
   descriptions?: LocalizedDescription;
-  downloadType: 'direct' | 'p2p';
+  downloadType: 'direct' | 'p2p' | 'official';
   files?: string[];
   p2pLink?: string;
+  officialLink?: string;
 }
 
 export interface Software {

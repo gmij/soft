@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Typography, Empty, Spin, Tag, Space, Button, message } from 'antd';
-import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, DownloadOutlined, CloudOutlined, CopyOutlined, LinkOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Software, SoftwareData, TagType } from '../types';
 import { TAG_COLORS } from '../types';
@@ -117,6 +117,18 @@ const HomePage: React.FC = () => {
     return `${import.meta.env.BASE_URL}down/${encodeURIComponent(softwareName)}/${encodeURIComponent(version)}/${encodeURIComponent(fileName)}`;
   };
 
+  // Helper function to get download type icon, color, and label
+  const getDownloadTypeInfo = (downloadType: string) => {
+    switch (downloadType) {
+      case 'p2p':
+        return { icon: <CloudOutlined />, color: 'orange', label: t('common.p2pDownload') };
+      case 'official':
+        return { icon: <LinkOutlined />, color: 'purple', label: t('common.officialDownload') };
+      default:
+        return { icon: <DownloadOutlined />, color: 'green', label: t('common.directDownload') };
+    }
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -176,6 +188,7 @@ const HomePage: React.FC = () => {
           {filteredSoftwareList.map((software) => {
             const latestVersion = software.versions[0];
             const downloadType = latestVersion?.downloadType;
+            const downloadTypeInfo = getDownloadTypeInfo(downloadType || 'direct');
 
             // Handle card click navigation
             const handleCardClick = () => {
@@ -240,17 +253,29 @@ const HomePage: React.FC = () => {
                       {latestVersion?.version || t('common.unknownVersion')}
                     </Tag>
                     <Tag
-                      icon={downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
-                      color={downloadType === 'p2p' ? 'orange' : 'green'}
+                      icon={downloadTypeInfo.icon}
+                      color={downloadTypeInfo.color}
                     >
-                      {downloadType === 'p2p' ? t('common.p2p') : t('common.directDownload')}
+                      {downloadTypeInfo.label}
                     </Tag>
                   </div>
 
                   {/* Download button */}
                   {latestVersion && (
                     <div style={{ textAlign: 'center' }}>
-                      {downloadType === 'p2p' && latestVersion.p2pLink ? (
+                      {downloadType === 'official' && latestVersion.officialLink ? (
+                        <Button
+                          type="primary"
+                          icon={<LinkOutlined />}
+                          href={latestVersion.officialLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          block
+                        >
+                          {t('common.goToOfficialSite')}
+                        </Button>
+                      ) : downloadType === 'p2p' && latestVersion.p2pLink ? (
                         <Button
                           type="primary"
                           icon={<CopyOutlined />}

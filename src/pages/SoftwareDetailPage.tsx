@@ -21,6 +21,7 @@ import {
   CopyOutlined,
   HomeOutlined,
   FileOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -128,6 +129,26 @@ const SoftwareDetailPage: React.FC = () => {
   }
 
   const renderVersionContent = (version: SoftwareVersion) => {
+    if (version.downloadType === 'official' && version.officialLink) {
+      return (
+        <div>
+          <Paragraph>
+            <Text type="secondary">{t('common.officialSiteHint')}</Text>
+          </Paragraph>
+          <Button
+            type="primary"
+            icon={<LinkOutlined />}
+            href={version.officialLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginTop: 12 }}
+          >
+            {t('common.goToOfficialSite')}
+          </Button>
+        </div>
+      );
+    }
+
     if (version.downloadType === 'p2p' && version.p2pLink) {
       return (
         <div>
@@ -189,6 +210,18 @@ const SoftwareDetailPage: React.FC = () => {
     i18n.language
   );
 
+  // Helper function to get download type icon and color
+  const getDownloadTypeInfo = (downloadType: string) => {
+    switch (downloadType) {
+      case 'p2p':
+        return { icon: <CloudOutlined />, color: 'orange', label: t('common.p2pDownload') };
+      case 'official':
+        return { icon: <LinkOutlined />, color: 'purple', label: t('common.officialDownload') };
+      default:
+        return { icon: <DownloadOutlined />, color: 'green', label: t('common.directDownload') };
+    }
+  };
+
   const collapseItems = software.versions.map((version, index) => {
     const versionDescription = getLocalizedDescription(
       version.descriptions,
@@ -199,16 +232,18 @@ const SoftwareDetailPage: React.FC = () => {
     // Only show version description if it's different from software-level description
     const showVersionDescription = versionDescription && versionDescription !== softwareDescription;
     
+    const downloadTypeInfo = getDownloadTypeInfo(version.downloadType);
+    
     return {
       key: version.version,
       label: (
         <Space>
           <Text strong>{version.version}</Text>
           <Tag
-            icon={version.downloadType === 'p2p' ? <CloudOutlined /> : <DownloadOutlined />}
-            color={version.downloadType === 'p2p' ? 'orange' : 'green'}
+            icon={downloadTypeInfo.icon}
+            color={downloadTypeInfo.color}
           >
-            {version.downloadType === 'p2p' ? t('common.p2pDownload') : t('common.directDownload')}
+            {downloadTypeInfo.label}
           </Tag>
           {index === 0 && <Tag color="blue">{t('common.latestVersion')}</Tag>}
         </Space>
@@ -297,7 +332,18 @@ const SoftwareDetailPage: React.FC = () => {
                 <Text type="secondary" style={{ marginBottom: 12, textAlign: 'center' }}>
                   {t('common.latestVersion')}
                 </Text>
-                {software.versions[0].downloadType === 'p2p' && software.versions[0].p2pLink ? (
+                {software.versions[0].downloadType === 'official' && software.versions[0].officialLink ? (
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<LinkOutlined />}
+                    href={software.versions[0].officialLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t('common.goToOfficialSite')}
+                  </Button>
+                ) : software.versions[0].downloadType === 'p2p' && software.versions[0].p2pLink ? (
                   <Button
                     type="primary"
                     size="large"
