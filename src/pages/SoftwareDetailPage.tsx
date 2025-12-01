@@ -53,41 +53,23 @@ const SoftwareDetailPage: React.FC = () => {
     const plainDescription = description ? stripMarkdown(description).substring(0, 160) : '';
     const isEnglish = i18n.language === 'en';
     
-    // Build keywords from software name, tags, and version
-    const tagKeywords = software.tags?.map(tag => 
-      isEnglish ? tag : t(`tags.${tag}`, { defaultValue: tag })
-    ).join(',') || '';
-    const versionInfo = latestVersion?.version || '';
-    const baseKeywords = isEnglish
-      ? `${software.name},${versionInfo},download,software,free download`
-      : `${software.name},${versionInfo},下载,软件,免费下载`;
-    const keywords = tagKeywords ? `${baseKeywords},${tagKeywords}` : baseKeywords;
-    
-    // Build more descriptive title including version
-    const versionText = versionInfo ? ` ${versionInfo}` : '';
-    const seoTitle = isEnglish 
-      ? `${software.name}${versionText} - Free Download | ${t('common.siteName')}`
-      : `${software.name}${versionText} 免费下载 - ${t('common.siteName')}`;
-    
-    // Build better description with software info
-    const tagNames = software.tags?.map(tag => 
-      isEnglish ? tag : t(`tags.${tag}`, { defaultValue: tag })
-    ).join(', ') || '';
-    const seoDescription = plainDescription || (isEnglish 
-      ? `Download ${software.name}${versionText} for free. ${tagNames ? `Category: ${tagNames}. ` : ''}Safe and fast download.`
-      : `免费下载 ${software.name}${versionText}。${tagNames ? `分类：${tagNames}。` : ''}安全快速下载。`);
-    
     updatePageMeta({
-      title: seoTitle,
-      description: seoDescription,
-      keywords: keywords,
+      title: isEnglish 
+        ? `${software.name} Download - Software Download`
+        : `${software.name} 下载 - 软件下载站`,
+      description: plainDescription || (isEnglish 
+        ? `Download ${software.name} - latest version available for free download.`
+        : `下载 ${software.name} - 最新版本免费下载。`),
+      keywords: isEnglish
+        ? `${software.name},download,software,free download`
+        : `${software.name},下载,软件,免费下载`,
       ogTitle: isEnglish 
-        ? `Download ${software.name}${versionText}`
-        : `下载 ${software.name}${versionText}`,
-      ogDescription: seoDescription,
-      canonicalPath: `software/${encodeURIComponent(software.name)}`
+        ? `Download ${software.name}`
+        : `下载 ${software.name}`,
+      ogDescription: plainDescription,
+      canonicalPath: `#/software/${encodeURIComponent(software.name)}`
     });
-  }, [software, i18n.language, t]);
+  }, [software, i18n.language]);
 
   useEffect(() => {
     if (!name) return;
