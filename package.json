@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate && tsc -b && vite build && npm run prerender",
-    "prerender": "npx tsx scripts/prerender-seo.ts",
+    "build": "npm run generate && tsc -b && vite build",
     "generate": "npx tsx scripts/generate-data.ts",
     "generate:readme": "npx tsx scripts/generate-readme.ts",
     "lint": "eslint .",
@@ -14,7 +13,6 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
-    "@fontsource/noto-sans-sc": "^5.2.8",
     "antd": "^6.0.0",
     "i18next": "^25.6.3",
     "react": "^19.2.0",
