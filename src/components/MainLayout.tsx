@@ -1,6 +1,7 @@
 import { Layout, Typography, theme, Space } from 'antd';
 import { GithubOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -27,22 +28,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           padding: '0 24px',
         }}
       >
-        <a href={import.meta.env.BASE_URL} style={{ textDecoration: 'none' }}>
+        <Link to="/" style={{ textDecoration: 'none' }}>
           <Title
             level={3}
             style={{ color: '#fff', margin: 0, cursor: 'pointer' }}
           >
             📦 {t('common.siteName')}
           </Title>
-        </a>
+        </Link>
         <Space size="middle">
-          <AntLink
-            href={`${import.meta.env.BASE_URL}#/about`}
+          <Link
+            to="/about"
             style={{ color: '#fff', fontSize: 14 }}
           >
             <InfoCircleOutlined style={{ marginRight: 4 }} />
             {t('common.about')}
-          </AntLink>
+          </Link>
           <LanguageSwitcher />
           <AntLink
             href="https://github.com/gmij/soft"

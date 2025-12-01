@@ -256,6 +256,13 @@ async function main() {
   // Read base index.html
   const baseHtml = fs.readFileSync(INDEX_HTML, 'utf-8');
   
+  // Create 404.html as a copy of index.html for GitHub Pages SPA fallback
+  // This is needed because BrowserRouter requires server-side routing
+  // GitHub Pages serves 404.html for unknown paths, enabling client-side routing
+  const notFoundPath = path.join(DIST_DIR, '404.html');
+  fs.writeFileSync(notFoundPath, baseHtml, 'utf-8');
+  console.log('  ✓ 404.html (SPA fallback)');
+  
   // Create software directory for pre-rendered pages
   const softwareDir = path.join(DIST_DIR, 'software');
   if (!fs.existsSync(softwareDir)) {
@@ -285,7 +292,7 @@ async function main() {
     generatedCount++;
   }
   
-  console.log(`\n预渲染完成！共生成 ${generatedCount} 个软件页面`);
+  console.log(`\n预渲染完成！共生成 ${generatedCount} 个软件页面 + 1 个 404.html`);
   console.log(`输出目录: ${softwareDir}`);
 }
 
