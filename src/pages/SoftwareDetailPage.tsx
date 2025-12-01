@@ -85,7 +85,7 @@ const SoftwareDetailPage: React.FC = () => {
         ? `Download ${software.name}${versionText}`
         : `下载 ${software.name}${versionText}`,
       ogDescription: seoDescription,
-      canonicalPath: `#/software/${encodeURIComponent(software.name)}`
+      canonicalPath: `software/${encodeURIComponent(software.name)}`
     });
   }, [software, i18n.language, t]);
 
