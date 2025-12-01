@@ -90,6 +90,23 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * Sanitize a string for use as a directory name
+ * Replaces characters that are problematic on various filesystems
+ */
+function sanitizeDirectoryName(name: string): string {
+  return name
+    // Replace characters that are invalid on Windows/Unix filesystems
+    .replace(/[<>:"/\\|?*]/g, '_')
+    // Replace control characters (using character class range)
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    // Trim leading/trailing spaces and dots (problematic on Windows)
+    .replace(/^[\s.]+|[\s.]+$/g, '')
+    // Limit length to avoid filesystem issues
+    .substring(0, 255);
+}
+
+/**
  * Get localized description, with fallback
  */
 function getLocalizedDescription(
@@ -114,7 +131,7 @@ function generateSeoMeta(software: Software, language: 'zh-CN' | 'en'): {
   ogTitle: string;
   canonicalPath: string;
 } {
-  const latestVersion = software.versions[0];
+  const latestVersion = software.versions.length > 0 ? software.versions[0] : undefined;
   const description = getLocalizedDescription(
     software.descriptions || latestVersion?.descriptions,
     software.description || latestVersion?.description,
@@ -153,12 +170,13 @@ function generateSeoMeta(software: Software, language: 'zh-CN' | 'en'): {
     ? `Download ${software.name}${versionText}`
     : `下载 ${software.name}${versionText}`;
   
+  // Use path-based URL for canonical (without hash) for better SEO
   return {
     title,
     description: seoDescription,
     keywords,
     ogTitle,
-    canonicalPath: `#/software/${encodeURIComponent(software.name)}`
+    canonicalPath: `software/${encodeURIComponent(software.name)}`
   };
 }
 
@@ -251,9 +269,10 @@ async function main() {
     // Use Chinese as the default language for pre-rendered pages
     const html = createSoftwareHtml(baseHtml, software, 'zh-CN');
     
-    // Create directory for this software (use original name, not URL encoded)
-    // GitHub Pages will handle URL encoding automatically
-    const softwarePageDir = path.join(softwareDir, software.name);
+    // Create directory for this software using sanitized name
+    // This handles special characters that might cause filesystem issues
+    const safeDirName = sanitizeDirectoryName(software.name);
+    const softwarePageDir = path.join(softwareDir, safeDirName);
     if (!fs.existsSync(softwarePageDir)) {
       fs.mkdirSync(softwarePageDir, { recursive: true });
     }
