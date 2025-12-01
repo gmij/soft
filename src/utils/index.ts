@@ -108,15 +108,23 @@ export function updatePageMeta(options: {
     twitterDescription.setAttribute('content', options.ogDescription || options.description);
   }
   
-  // Update canonical URL using base URL from window location
+  // Use the current origin and base path for URLs
+  const baseUrl = `${window.location.origin}${import.meta.env.BASE_URL}`;
+  
+  // Update canonical URL
   if (options.canonicalPath !== undefined) {
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
-      // Use the current origin and base path for canonical URL
-      const baseUrl = `${window.location.origin}${import.meta.env.BASE_URL}`;
       canonical.setAttribute('href', `${baseUrl}${options.canonicalPath}`);
     }
   }
+  
+  // Update hreflang links
+  const hreflangLinks = document.querySelectorAll('link[rel="alternate"][hreflang]');
+  hreflangLinks.forEach((link) => {
+    const currentPath = options.canonicalPath !== undefined ? options.canonicalPath : '';
+    link.setAttribute('href', `${baseUrl}${currentPath}`);
+  });
 }
 
 // 格式化文件大小
