@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, App as AntApp } from 'antd';
 import { useTranslation } from 'react-i18next';
 import zhCN from 'antd/locale/zh_CN';
@@ -17,7 +17,7 @@ function App() {
   return (
     <ConfigProvider locale={antdLocale}>
       <AntApp>
-        <HashRouter>
+        <BrowserRouter basename="/soft">
           <MainLayout>
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -25,7 +25,7 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
             </Routes>
           </MainLayout>
-        </HashRouter>
+        </BrowserRouter>
       </AntApp>
     </ConfigProvider>
   );
