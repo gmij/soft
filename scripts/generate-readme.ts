@@ -21,7 +21,9 @@ interface VersionInfo {
   path: string;
   files: string[];
   hasLinkTxt: boolean;
+  hasOfficialTxt: boolean;
   p2pLink?: string;
+  officialLink?: string;
 }
 
 /**
@@ -51,15 +53,36 @@ function scanResourcesNeedingReadme(): ResourceInfo[] {
       .map(dirent => dirent.name);
 
     const versions: VersionInfo[] = [];
+    
+    // Check for official.txt at software level (for software with no version subdirectories)
+    const softwareOfficialFile = path.join(resourcePath, 'official.txt');
+    if (versionDirs.length === 0 && fs.existsSync(softwareOfficialFile)) {
+      // Software-level official download (no version subdirectory needed)
+      const officialLink = fs.readFileSync(softwareOfficialFile, 'utf-8').trim();
+      versions.push({
+        version: 'latest',
+        path: resourcePath,
+        files: [],
+        hasLinkTxt: false,
+        hasOfficialTxt: true,
+        officialLink,
+      });
+    }
+    
     for (const versionName of versionDirs) {
       const versionPath = path.join(resourcePath, versionName);
       const linkTxtPath = path.join(versionPath, 'link.txt');
+      const officialTxtPath = path.join(versionPath, 'official.txt');
       const hasLinkTxt = fs.existsSync(linkTxtPath);
+      const hasOfficialTxt = fs.existsSync(officialTxtPath);
 
       let files: string[] = [];
       let p2pLink: string | undefined;
+      let officialLink: string | undefined;
 
-      if (hasLinkTxt) {
+      if (hasOfficialTxt) {
+        officialLink = fs.readFileSync(officialTxtPath, 'utf-8').trim();
+      } else if (hasLinkTxt) {
         p2pLink = fs.readFileSync(linkTxtPath, 'utf-8').trim();
       } else {
         files = fs.readdirSync(versionPath)
@@ -78,7 +101,9 @@ function scanResourcesNeedingReadme(): ResourceInfo[] {
         path: versionPath,
         files,
         hasLinkTxt,
+        hasOfficialTxt,
         p2pLink,
+        officialLink,
       });
     }
 
@@ -185,7 +210,9 @@ async function generateChineseReadme(resource: ResourceInfo, templates: { zhTemp
 
   // Build context for the LLM
   const versionInfo = resource.versions.map(v => {
-    if (v.hasLinkTxt) {
+    if (v.hasOfficialTxt) {
+      return `- 版本 ${v.version}: 官网下载 (${v.officialLink})`;
+    } else if (v.hasLinkTxt) {
       return `- 版本 ${v.version}: P2P下载 (${v.p2pLink})`;
     } else {
       return `- 版本 ${v.version}: 直接下载, 文件: ${v.files.join(', ')}`;
@@ -247,7 +274,9 @@ async function generateEnglishReadme(resource: ResourceInfo, templates: { zhTemp
 
   // Build context for the LLM
   const versionInfo = resource.versions.map(v => {
-    if (v.hasLinkTxt) {
+    if (v.hasOfficialTxt) {
+      return `- Version ${v.version}: Official website download (${v.officialLink})`;
+    } else if (v.hasLinkTxt) {
       return `- Version ${v.version}: P2P download (${v.p2pLink})`;
     } else {
       return `- Version ${v.version}: Direct download, files: ${v.files.join(', ')}`;
