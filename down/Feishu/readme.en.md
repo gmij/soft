@@ -56,6 +56,7 @@ A: Lark offers a free version that includes core features such as instant messag
 
 ## Links
 
-- [Official Website](https://www.larksuite.com/)
-- [Help Center](https://www.larksuite.com/hc/en-US)
-- [Open Platform](https://open.larksuite.com/)
+- [Official Website (China)](https://www.feishu.cn/)
+- [Official Website (International)](https://www.larksuite.com/)
+- [Help Center](https://www.feishu.cn/hc/en-US)
+- [Open Platform](https://open.feishu.cn/)
