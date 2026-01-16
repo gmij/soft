@@ -102,6 +102,32 @@ npm run build
 npm run preview
 ```
 
+## 部署
+
+### GitHub Pages
+
+项目配置了 GitHub Actions 自动部署到 GitHub Pages。每次推送到 main 分支时，会自动触发构建和部署流程。
+
+### Cloudflare Pages
+
+项目支持部署到 Cloudflare Pages，配置文件为 `wrangler.jsonc`。
+
+部署方式：
+
+1. **使用 Wrangler CLI**：
+   ```bash
+   # 构建项目
+   npm run build
+   
+   # 部署到 Cloudflare Pages
+   npx wrangler deploy
+   ```
+
+2. **使用 Cloudflare Pages Dashboard**：
+   - 连接 GitHub 仓库
+   - 设置构建命令：`npm run build`
+   - 设置构建输出目录：`dist`
+
 ## 技术栈
 
 - **前端框架**：React 19
@@ -110,7 +136,7 @@ npm run preview
 - **路由**：React Router
 - **国际化**：i18next + react-i18next
 - **Markdown 渲染**：react-markdown
-- **部署平台**：GitHub Pages
+- **部署平台**：GitHub Pages / Cloudflare Pages
 
 ## 许可证
 
