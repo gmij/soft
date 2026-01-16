@@ -116,8 +116,8 @@ npm run preview
 
 1. **使用 Wrangler CLI**：
    ```bash
-   # 构建项目
-   npm run build
+   # 构建项目（设置 BASE_PATH 为根路径）
+   BASE_PATH=/ npm run build
    
    # 部署到 Cloudflare Pages
    npx wrangler deploy
@@ -125,8 +125,9 @@ npm run preview
 
 2. **使用 Cloudflare Pages Dashboard**：
    - 连接 GitHub 仓库
-   - 设置构建命令：`npm run build`
+   - 设置构建命令：`BASE_PATH=/ npm run build`
    - 设置构建输出目录：`dist`
+   - 或在 Cloudflare Pages 设置中添加环境变量：`BASE_PATH` = `/`
 
 ## 技术栈
 
