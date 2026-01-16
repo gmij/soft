@@ -17,7 +17,7 @@ function App() {
   return (
     <ConfigProvider locale={antdLocale}>
       <AntApp>
-        <BrowserRouter basename="/soft">
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <MainLayout>
             <Routes>
               <Route path="/" element={<HomePage />} />

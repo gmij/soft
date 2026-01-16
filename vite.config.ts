@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/soft/',
+  // Use root path for Cloudflare Pages, /soft/ for GitHub Pages
+  base: process.env.BASE_PATH || '/soft/',
   build: {
     rollupOptions: {
       output: {

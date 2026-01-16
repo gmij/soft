@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate && tsc -b && vite build && npm run prerender",
+    "build": "npm run generate && tsc -b && vite build && npm run prerender && npm run copy-down",
     "prerender": "npx tsx scripts/prerender-seo.ts",
+    "copy-down": "npx tsx scripts/copy-down.ts",
     "generate": "npx tsx scripts/generate-data.ts",
     "generate:readme": "npx tsx scripts/generate-readme.ts",
     "lint": "eslint .",
