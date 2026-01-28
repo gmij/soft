@@ -12,7 +12,7 @@ interface RequestSoftwareDialogProps {
 }
 
 const RequestSoftwareDialog: React.FC<RequestSoftwareDialogProps> = ({ open, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
