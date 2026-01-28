@@ -47,21 +47,22 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `🤖 GitHub Copilot Agent 已启动，正在搜索 **${{ steps.extract.outputs.software_name }}** 的相关信息...
-              
-进度：
-- ✅ 申请已接收
-- 🔄 正在搜索官方网站和下载地址
-- ⏳ 等待创建资源文件
-- ⏳ 等待人工审核
+              body: `🤖 GitHub Copilot Agent has been started and is searching for information about **${{ steps.extract.outputs.software_name }}**...
 
+**Progress** / **进度**:
+- ✅ Request received / 申请已接收
+- 🔄 Searching for official website and download address / 正在搜索官方网站和下载地址
+- ⏳ Waiting to create resource files / 等待创建资源文件
+- ⏳ Waiting for manual review / 等待人工审核
+
+Please be patient. This issue will be automatically updated when processing is complete.
 请耐心等待，处理完成后会自动更新此 Issue。`
             });
 
-      - name: Create agent instruction file
+      - name: Create agent instruction in repository
         run: |
-          mkdir -p /tmp/agent-work
-          cat > /tmp/agent-work/agent-instruction.md << 'EOF'
+          mkdir -p .github/agent-instructions
+          cat > .github/agent-instructions/software-request-${{ github.event.issue.number }}.md << 'EOF'
           # 软件资源搜索和创建任务
           
           ## 任务目标
@@ -173,7 +174,7 @@ jobs:
           - 关联的 Issue 编号 (#${{ github.event.issue.number }})
           EOF
           
-          echo "Agent instruction file created at /tmp/agent-work/agent-instruction.md"
+          echo "Agent instruction file created at .github/agent-instructions/software-request-${{ github.event.issue.number }}.md"
 
       - name: Trigger GitHub Copilot Agent
         env:
@@ -184,6 +185,9 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git checkout -b "$BRANCH_NAME"
+          
+          # Add the instruction file
+          git add .github/agent-instructions/software-request-${{ github.event.issue.number }}.md
           
           # Create a placeholder file to initialize the branch
           mkdir -p "down/${{ steps.extract.outputs.software_name }}"
@@ -208,26 +212,40 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `📋 已为此申请创建工作分支：\`${branchName}\`
+              body: `📋 Work branch created for this request: \`${branchName}\`
 
-**下一步操作**：
+**Next Steps** / **下一步操作**:
+
+Since full automation of GitHub Copilot Agent requires additional configuration, administrators currently need to manually complete the following steps:
 
 由于 GitHub Copilot Agent 的完全自动化需要额外配置，目前需要管理员手动完成以下步骤：
 
-1. 使用 GitHub Copilot 在分支 \`${branchName}\` 上工作
-2. 按照以下要求搜索并创建资源：
-   - 搜索 **${{ steps.extract.outputs.software_name }}** 的官方网站
-   - 在 \`down/${{ steps.extract.outputs.software_name }}/latest/\` 目录创建资源
-   - 创建 \`readme.md\` 和 \`readme.en.md\` 描述文件
-   - 创建 \`link.txt\` 包含官网下载链接
-   - 创建 \`tags.txt\` 添加分类标签
-3. 创建 Pull Request 并关联此 Issue
+1. Use GitHub Copilot to work on branch \`${branchName}\`
+   使用 GitHub Copilot 在分支 \`${branchName}\` 上工作
 
-**或者**，管理员可以参考 \`/tmp/agent-work/agent-instruction.md\` 中的详细指令。
+2. Search and create resources according to the following requirements:
+   按照以下要求搜索并创建资源：
+   - Search for the official website of **${{ steps.extract.outputs.software_name }}**
+     搜索 **${{ steps.extract.outputs.software_name }}** 的官方网站
+   - Create resources in \`down/${{ steps.extract.outputs.software_name }}/latest/\` directory
+     在 \`down/${{ steps.extract.outputs.software_name }}/latest/\` 目录创建资源
+   - Create \`readme.md\` and \`readme.en.md\` description files
+     创建 \`readme.md\` 和 \`readme.en.md\` 描述文件
+   - Create \`link.txt\` containing the official download link
+     创建 \`link.txt\` 包含官网下载链接
+   - Create \`tags.txt\` to add category tags
+     创建 \`tags.txt\` 添加分类标签
+
+3. Create a Pull Request and link it to this Issue
+   创建 Pull Request 并关联此 Issue
+
+**Or** / **或者**, refer to the detailed instructions in \`.github/agent-instructions/software-request-${{ github.event.issue.number }}.md\`
+管理员可以参考 \`.github/agent-instructions/software-request-${{ github.event.issue.number }}.md\` 中的详细指令。
 
 ---
 
-**临时解决方案**：在未配置自动化之前，用户也可以直接按照 [项目文档](https://github.com/${context.repo.owner}/${context.repo.repo}#添加软件) 手动创建 Pull Request。`
+**Alternative Solution** / **临时解决方案**: Users can also manually create a Pull Request following the [project documentation](https://github.com/${context.repo.owner}/${context.repo.repo}#添加软件).
+在未配置自动化之前，用户也可以直接按照 [项目文档](https://github.com/${context.repo.owner}/${context.repo.repo}#添加软件) 手动创建 Pull Request。`
             });
 
       - name: Add processing label
