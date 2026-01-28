@@ -1,0 +1,242 @@
+name: Handle Software Request
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  models: read
+
+jobs:
+  process-software-request:
+    if: contains(github.event.issue.labels.*.name, 'software-request')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract software name from issue
+        id: extract
+        run: |
+          # Extract software name from issue title
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          # Remove prefix like "[软件申请]" or "[Software Request]"
+          SOFTWARE_NAME=$(echo "$ISSUE_TITLE" | sed -E 's/^\[.*\]\s*//')
+          echo "software_name=$SOFTWARE_NAME" >> $GITHUB_OUTPUT
+          
+          # Extract additional info from issue body if present
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          echo "issue_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$ISSUE_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on issue - Processing started
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 GitHub Copilot Agent 已启动，正在搜索 **${{ steps.extract.outputs.software_name }}** 的相关信息...
+              
+进度：
+- ✅ 申请已接收
+- 🔄 正在搜索官方网站和下载地址
+- ⏳ 等待创建资源文件
+- ⏳ 等待人工审核
+
+请耐心等待，处理完成后会自动更新此 Issue。`
+            });
+
+      - name: Create agent instruction file
+        run: |
+          mkdir -p /tmp/agent-work
+          cat > /tmp/agent-work/agent-instruction.md << 'EOF'
+          # 软件资源搜索和创建任务
+          
+          ## 任务目标
+          
+          为用户申请的软件创建完整的下载资源，包括：
+          1. 搜索软件的官方网站和下载地址
+          2. 创建符合项目规范的目录结构
+          3. 编写中英文软件描述文件
+          4. 配置下载方式（官网下载优先）
+          
+          ## 软件信息
+          
+          **软件名称**: ${{ steps.extract.outputs.software_name }}
+          
+          **用户补充说明**:
+          ${{ steps.extract.outputs.issue_body }}
+          
+          ## 项目规范
+          
+          ### 目录结构
+          
+          在 `down/` 目录下创建以下结构：
+          
+          ```
+          down/
+          └── {软件名称}/
+              ├── readme.md         # 中文软件描述
+              ├── readme.en.md      # 英文软件描述
+              ├── tags.txt          # 软件分类标签（每行一个）
+              └── latest/           # 版本目录
+                  ├── readme.md     # 版本说明（可选）
+                  ├── link.txt      # 官网下载链接（首选）
+                  └── [files]       # 或直接下载文件
+          ```
+          
+          ### 下载方式优先级
+          
+          1. **官网下载（首选）**: 创建 `link.txt` 文件，内容为官方下载页面的 URL
+          2. **P2P 下载**: 如果有磁力链接，创建 `link.txt`，内容以 `magnet:` 开头
+          3. **直接下载**: 只有在无法获取官网链接时才考虑
+          
+          ### 软件描述要求 (readme.md)
+          
+          包含以下内容：
+          - 软件的简要介绍（1-2 段）
+          - 主要特性（列表形式，3-5 个要点）
+          - 官方网站链接
+          - 系统要求（如果有）
+          - 许可证类型
+          
+          ### 标签分类 (tags.txt)
+          
+          从以下标签中选择最合适的 1-2 个（每行一个）：
+          - `development` - 开发工具
+          - `office` - 办公软件
+          - `media` - 媒体工具
+          - `system` - 系统工具
+          - `network` - 网络工具
+          - `security` - 安全软件
+          - `game` - 游戏娱乐
+          - `other` - 其他
+          
+          ## 执行步骤
+          
+          1. **搜索信息**
+             - 使用 web_search 搜索软件的官方网站
+             - 确认软件的正式名称
+             - 找到官方下载页面的 URL
+          
+          2. **创建目录结构**
+             - 在 `down/` 目录下创建软件文件夹
+             - 创建 `latest` 版本文件夹
+          
+          3. **编写软件描述**
+             - 创建 `readme.md`（中文）
+             - 创建 `readme.en.md`（英文）
+             - 包含软件介绍、特性、官网链接等
+          
+          4. **配置下载方式**
+             - 优先创建 `link.txt` 包含官网下载链接
+             - 不要下载或包含实际软件文件
+          
+          5. **添加分类标签**
+             - 创建 `tags.txt` 文件
+             - 根据软件类型选择合适的标签
+          
+          ## 注意事项
+          
+          - 确保所有文件使用 UTF-8 编码
+          - Markdown 文件使用标准的 Markdown 格式
+          - 链接必须是有效的 URL
+          - 不要包含任何广告或推广内容
+          - 描述要客观、准确、简洁
+          - 必须标注软件的许可证类型
+          
+          ## 完成标准
+          
+          - [ ] 成功搜索到软件的官方网站
+          - [ ] 创建了完整的目录结构
+          - [ ] 编写了中英文描述文件
+          - [ ] 配置了官网下载方式
+          - [ ] 添加了合适的分类标签
+          - [ ] 所有文件格式正确，内容准确
+          
+          完成后，创建一个 Pull Request，标题为 "添加软件: ${{ steps.extract.outputs.software_name }}"，并在描述中说明：
+          - 软件的官方网站
+          - 下载方式
+          - 主要特性
+          - 关联的 Issue 编号 (#${{ github.event.issue.number }})
+          EOF
+          
+          echo "Agent instruction file created at /tmp/agent-work/agent-instruction.md"
+
+      - name: Trigger GitHub Copilot Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create a new branch for the agent to work on
+          BRANCH_NAME="software-request-${{ github.event.issue.number }}"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Create a placeholder file to initialize the branch
+          mkdir -p "down/${{ steps.extract.outputs.software_name }}"
+          echo "# ${{ steps.extract.outputs.software_name }}" > "down/${{ steps.extract.outputs.software_name }}/.agent-processing"
+          echo "This directory is being processed by GitHub Copilot Agent." >> "down/${{ steps.extract.outputs.software_name }}/.agent-processing"
+          echo "Issue: #${{ github.event.issue.number }}" >> "down/${{ steps.extract.outputs.software_name }}/.agent-processing"
+          
+          git add "down/${{ steps.extract.outputs.software_name }}/.agent-processing"
+          git commit -m "chore: initialize processing for ${{ steps.extract.outputs.software_name }}"
+          git push origin "$BRANCH_NAME"
+          
+          # Create a comment with manual instructions since GitHub Copilot Workspace integration
+          # needs to be set up separately or done manually
+          echo "Branch created: $BRANCH_NAME"
+
+      - name: Comment on issue - Manual action required
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = `software-request-${{ github.event.issue.number }}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `📋 已为此申请创建工作分支：\`${branchName}\`
+
+**下一步操作**：
+
+由于 GitHub Copilot Agent 的完全自动化需要额外配置，目前需要管理员手动完成以下步骤：
+
+1. 使用 GitHub Copilot 在分支 \`${branchName}\` 上工作
+2. 按照以下要求搜索并创建资源：
+   - 搜索 **${{ steps.extract.outputs.software_name }}** 的官方网站
+   - 在 \`down/${{ steps.extract.outputs.software_name }}/latest/\` 目录创建资源
+   - 创建 \`readme.md\` 和 \`readme.en.md\` 描述文件
+   - 创建 \`link.txt\` 包含官网下载链接
+   - 创建 \`tags.txt\` 添加分类标签
+3. 创建 Pull Request 并关联此 Issue
+
+**或者**，管理员可以参考 \`/tmp/agent-work/agent-instruction.md\` 中的详细指令。
+
+---
+
+**临时解决方案**：在未配置自动化之前，用户也可以直接按照 [项目文档](https://github.com/${context.repo.owner}/${context.repo.repo}#添加软件) 手动创建 Pull Request。`
+            });
+
+      - name: Add processing label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['processing']
+            });

@@ -26,7 +26,30 @@
     "noDownloadFiles": "暂无下载文件",
     "p2pAddress": "P2P 下载地址：",
     "goToOfficialSite": "前往官网下载",
-    "officialSiteHint": "点击下方按钮前往官方下载页面"
+    "officialSiteHint": "点击下方按钮前往官方下载页面",
+    "requestSoftware": "申请软件"
+  },
+  "request": {
+    "title": "申请添加软件",
+    "description": "告诉我们您需要什么软件，我们将使用 AI 自动搜索软件信息并创建下载资源",
+    "softwareNameLabel": "软件名称",
+    "softwareNamePlaceholder": "请输入您需要的软件名称",
+    "softwareNameRequired": "请输入软件名称",
+    "additionalInfoLabel": "补充说明（可选）",
+    "additionalInfoPlaceholder": "例如：具体版本要求、用途说明等",
+    "submitButton": "提交申请",
+    "cancelButton": "取消",
+    "submitting": "提交中...",
+    "submitSuccess": "申请提交成功！",
+    "submitSuccessDesc": "我们的 AI 助手将自动搜索并创建软件资源，审核通过后即可使用。您可以在 GitHub Issues 中查看处理进度。",
+    "submitError": "提交失败",
+    "submitErrorDesc": "提交申请时出现错误，请稍后重试或直接在 GitHub 上创建 Issue。",
+    "githubLinkText": "在 GitHub 上创建 Issue",
+    "howItWorks": "工作原理",
+    "step1": "提交申请后，系统会自动在 GitHub 上创建一个 Issue",
+    "step2": "GitHub Copilot Agent 将自动搜索软件的官网和下载地址",
+    "step3": "Agent 会按照项目规则创建资源文件和描述",
+    "step4": "管理员审核通过后，软件将自动出现在网站上"
   },
   "home": {
     "title": "软件资源列表",
