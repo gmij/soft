@@ -20,12 +20,13 @@
    - **软件名称**（必填）：您需要的软件名称
    - **补充说明**（可选）：版本要求、用途等额外信息
 4. 点击 **"提交申请"** 按钮
-5. 系统会打开 GitHub Issue 创建页面（已预填内容）
-6. 确认信息无误后，在 GitHub 上提交 Issue
+5. 立即看到确认消息：**"申请已收到，正在收录补充中！"**
+6. 系统会自动在后台创建 GitHub Issue（无需手动操作）
 
 #### 2. 跟踪申请进度
 
-- 提交后，您可以在 GitHub Issues 中查看申请状态
+- 提交后，系统会自动在 GitHub 上创建 Issue
+- 您可以在 GitHub Issues 中查看申请状态
 - 系统会自动添加评论更新处理进度
 - 管理员审核通过后，软件将自动出现在网站上
 
@@ -33,12 +34,23 @@
 
 #### 自动化流程
 
-当用户创建带有 `software-request` 标签的 Issue 时，工作流会自动：
+当用户提交申请时，系统会自动：
 
-1. 提取软件名称和补充信息
-2. 创建处理分支 `software-request-{issue-number}`
-3. 生成详细的处理指南文件（`.github/agent-instructions/software-request-{issue-number}.md`）
-4. 在 Issue 中添加进度评论
+1. 通过 Cloudflare Pages Function API 接收请求
+2. 使用 GitHub API 自动创建 Issue（带 `software-request` 标签）
+3. GitHub Actions 工作流自动触发：
+   - 提取软件名称和补充信息
+   - 创建处理分支 `software-request-{issue-number}`
+   - 生成详细的处理指南文件（`.github/agent-instructions/software-request-{issue-number}.md`）
+   - 在 Issue 中添加进度评论
+
+#### API 配置
+
+在使用自动化功能前，需要配置 Cloudflare Pages 环境变量：
+
+1. 在 Cloudflare Pages 设置中添加 `GITHUB_TOKEN` 环境变量
+2. 使用具有 `repo` 权限的 GitHub Personal Access Token
+3. 详细设置说明请参阅 [API 设置文档](API_SETUP.md)
 
 #### 手动处理步骤
 
