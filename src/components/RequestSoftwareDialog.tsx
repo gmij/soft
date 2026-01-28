@@ -22,35 +22,55 @@ const RequestSoftwareDialog: React.FC<RequestSoftwareDialogProps> = ({ open, onC
       const values = await form.validateFields();
       setLoading(true);
 
-      // Call API to create GitHub issue automatically
-      const response = await fetch('/api/submit-request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          softwareName: values.softwareName,
-          additionalInfo: values.additionalInfo,
-          language: i18n.language === 'en' ? 'en' : 'zh-CN'
-        })
-      });
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const data = await response.json();
+      try {
+        // Call API to create GitHub issue automatically
+        const response = await fetch('/api/submit-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            softwareName: values.softwareName,
+            additionalInfo: values.additionalInfo,
+            language: i18n.language === 'en' ? 'en' : 'zh-CN'
+          }),
+          signal: controller.signal
+        });
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit request');
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit request');
+        }
+
+        // Show success status
+        setSubmitStatus('success');
+        message.success(t('request.submitSuccess'));
+        
+        // Reset form after short delay
+        setTimeout(() => {
+          form.resetFields();
+          setSubmitStatus('idle');
+          onClose();
+        }, 5000);
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error(
+            i18n.language === 'en' 
+              ? 'Request timeout. Please try again.' 
+              : '请求超时，请重试。'
+          );
+        }
+        throw fetchError;
       }
-
-      // Show success status
-      setSubmitStatus('success');
-      message.success(t('request.submitSuccess'));
-      
-      // Reset form after short delay
-      setTimeout(() => {
-        form.resetFields();
-        setSubmitStatus('idle');
-        onClose();
-      }, 5000);
       
     } catch (error) {
       console.error('Failed to submit request:', error);

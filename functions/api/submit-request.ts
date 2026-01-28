@@ -16,9 +16,9 @@ interface Env {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  // CORS headers
+  // CORS headers - restrict to actual domain in production
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': '*', // TODO: Replace with actual domain in production
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -30,7 +30,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   try {
     // Parse request body
-    const body = await request.json() as RequestBody;
+    let body: RequestBody;
+    try {
+      body = await request.json() as RequestBody;
+    } catch (parseError) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid request format' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Validate input
     if (!body.softwareName || body.softwareName.trim().length === 0) {
@@ -39,6 +49,41 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           error: body.language === 'en' 
             ? 'Software name is required' 
             : '软件名称不能为空' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate software name length (GitHub title limit is 256)
+    if (body.softwareName.length > 200) {
+      return new Response(
+        JSON.stringify({ 
+          error: body.language === 'en' 
+            ? 'Software name is too long (maximum 200 characters)' 
+            : '软件名称过长（最多 200 个字符）' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate additional info length
+    if (body.additionalInfo && body.additionalInfo.length > 5000) {
+      return new Response(
+        JSON.stringify({ 
+          error: body.language === 'en' 
+            ? 'Additional information is too long (maximum 5000 characters)' 
+            : '补充说明过长（最多 5000 个字符）' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate language
+    const isEnglish = body.language === 'en';
+    if (body.language && body.language !== 'en' && body.language !== 'zh-CN') {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid language parameter' 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -135,14 +180,26 @@ ${body.additionalInfo ? `**补充说明**: ${body.additionalInfo}` : ''}
         JSON.stringify({ 
           error: body.language === 'en'
             ? 'Failed to create issue. Please try again later or create an issue directly on GitHub.'
-            : '创建 Issue 失败，请稍后重试或直接在 GitHub 上创建 Issue。',
-          githubError: errorData
+            : '创建 Issue 失败，请稍后重试或直接在 GitHub 上创建 Issue。'
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const issueData = await response.json() as { number: number; html_url: string };
+    const issueData = await response.json() as { number?: number; html_url?: string };
+
+    // Validate response structure
+    if (!issueData.number || !issueData.html_url) {
+      console.error('Invalid GitHub API response:', issueData);
+      return new Response(
+        JSON.stringify({ 
+          error: body.language === 'en'
+            ? 'Unexpected response from GitHub. Please try again later.'
+            : '来自 GitHub 的响应异常，请稍后重试。'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Return success response
     return new Response(
@@ -163,10 +220,10 @@ ${body.additionalInfo ? `**补充说明**: ${body.additionalInfo}` : ''}
   } catch (error) {
     console.error('Error processing request:', error);
     
+    // Don't expose internal error details to client
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error. Please try again later.',
-        details: error instanceof Error ? error.message : String(error)
+        error: 'Internal server error. Please try again later.'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
