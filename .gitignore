@@ -15,12 +15,6 @@ dist-ssr
 # Generated data (will be regenerated during build)
 public/data/software.json
 
-# Agent instruction files (temporary)
-.github/agent-instructions/
-
-# Cloudflare secrets (local development)
-.dev.vars
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

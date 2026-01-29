@@ -26,30 +26,7 @@
     "noDownloadFiles": "No download files",
     "p2pAddress": "P2P Download Address:",
     "goToOfficialSite": "Go to Official Site",
-    "officialSiteHint": "Click the button below to visit the official download page",
-    "requestSoftware": "Request Software"
-  },
-  "request": {
-    "title": "Request Software",
-    "description": "Tell us what software you need, and we'll use AI to automatically search for software information and create download resources",
-    "softwareNameLabel": "Software Name",
-    "softwareNamePlaceholder": "Please enter the software name you need",
-    "softwareNameRequired": "Please enter software name",
-    "additionalInfoLabel": "Additional Information (Optional)",
-    "additionalInfoPlaceholder": "e.g., specific version requirements, usage description, etc.",
-    "submitButton": "Submit Request",
-    "cancelButton": "Cancel",
-    "submitting": "Submitting...",
-    "submitSuccess": "Request received, collecting information!",
-    "submitSuccessDesc": "Your request has been successfully submitted. Our AI assistant will automatically search for software information and create download resources. Once approved, the software will appear on the website automatically. You can track the progress in GitHub Issues.",
-    "submitError": "Submission failed",
-    "submitErrorDesc": "An error occurred while submitting your request. Please try again later or create an issue directly on GitHub.",
-    "githubLinkText": "Create Issue on GitHub",
-    "howItWorks": "How It Works",
-    "step1": "After submitting, the system will automatically create an Issue on GitHub",
-    "step2": "GitHub Copilot Agent will automatically search for the official website and download address",
-    "step3": "Agent will create resource files and descriptions following project rules",
-    "step4": "After admin approval, the software will automatically appear on the website"
+    "officialSiteHint": "Click the button below to visit the official download page"
   },
   "home": {
     "title": "Software List",
