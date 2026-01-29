@@ -1,9 +1,11 @@
-import { Layout, Typography, theme, Space } from 'antd';
-import { GithubOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Layout, Typography, theme, Space, Button } from 'antd';
+import { GithubOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import LanguageSwitcher from './LanguageSwitcher';
+import RequestSoftwareDialog from './RequestSoftwareDialog';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Link: AntLink } = Typography;
@@ -17,6 +19,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -37,6 +40,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Title>
         </Link>
         <Space size="middle">
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setRequestDialogOpen(true)}
+          >
+            {t('common.requestSoftware')}
+          </Button>
           <Link
             to="/about"
             style={{ color: '#fff', fontSize: 14 }}
@@ -69,6 +79,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Footer style={{ textAlign: 'center' }}>
         {t('footer.copyright', { year: new Date().getFullYear() })}
       </Footer>
+      <RequestSoftwareDialog
+        open={requestDialogOpen}
+        onClose={() => setRequestDialogOpen(false)}
+      />
     </Layout>
   );
 };
