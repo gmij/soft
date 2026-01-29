@@ -9,6 +9,7 @@
 - 📝 **Markdown 支持**：软件描述支持 Markdown 格式
 - 🏷️ **标签分类**：支持为软件添加分类标签，便于筛选
 - 🌐 **多语言支持**：支持中文和英文，自动根据浏览器语言切换
+- 🤖 **软件申请功能**：用户可通过网站提交软件申请，自动创建 GitHub Issue
 - 🚀 **自动部署**：通过 GitHub Actions 自动构建部署到 GitHub Pages
 - 📱 **响应式设计**：支持桌面端和移动端访问
 
@@ -112,6 +113,8 @@ npm run preview
 
 项目支持部署到 Cloudflare Pages，配置文件为 `wrangler.jsonc`。
 
+#### 基本部署
+
 部署方式：
 
 1. **使用 Wrangler CLI**：
@@ -128,6 +131,22 @@ npm run preview
    - 设置构建命令：`BASE_PATH=/ npm run build`
    - 设置构建输出目录：`dist`
    - 或在 Cloudflare Pages 设置中添加环境变量：`BASE_PATH` = `/`
+
+#### 配置软件申请功能
+
+如果需要启用网站的**软件申请功能**（用户可以通过网站提交软件申请，自动创建 GitHub Issue），需要额外配置：
+
+1. 创建 GitHub Personal Access Token（需要 `repo` 权限）
+2. 在 Cloudflare Pages 项目设置中添加环境变量：
+   - 变量名：`GITHUB_TOKEN`
+   - 值：你的 GitHub token
+   - 环境：Production（和 Preview）
+
+详细配置步骤请参考：
+- 📖 [Cloudflare 部署指南（中文）](./docs/CLOUDFLARE_DEPLOYMENT.zh-CN.md)
+- 📖 [API Setup Guide (English)](./docs/API_SETUP.md)
+
+**注意**：如果不配置 `GITHUB_TOKEN` 环境变量，用户在提交软件申请时会收到 404 错误。
 
 ## 技术栈
 
