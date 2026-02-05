@@ -3,6 +3,11 @@
  * Creates GitHub issues automatically via GitHub API
  */
 
+// Constants
+const MAX_SOFTWARE_NAME_LENGTH = 200;
+const MAX_ADDITIONAL_INFO_LENGTH = 5000;
+const REQUEST_TIMEOUT_MS = 30000;
+
 interface RequestBody {
   softwareName: string;
   additionalInfo?: string;
@@ -16,9 +21,18 @@ interface Env {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  // CORS headers - restrict to actual domain in production
+  // CORS configuration - only allow requests from allowed origins
+  const allowedOrigins = [
+    'https://soft.gmij.win',
+    'http://localhost:5173', // Local development
+    'http://localhost:8788', // Wrangler dev
+  ];
+  
+  const origin = request.headers.get('Origin') || '';
+  const isAllowedOrigin = allowedOrigins.includes(origin);
+  
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // TODO: Replace with actual domain in production
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : allowedOrigins[0],
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -31,8 +45,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     // Parse request body
     let body: RequestBody;
+    let language: 'en' | 'zh-CN' = 'zh-CN'; // Default language
     try {
       body = await request.json() as RequestBody;
+      language = body.language || 'zh-CN';
     } catch (parseError) {
       return new Response(
         JSON.stringify({ 
@@ -55,24 +71,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     // Validate software name length (GitHub title limit is 256)
-    if (body.softwareName.length > 200) {
+    if (body.softwareName.length > MAX_SOFTWARE_NAME_LENGTH) {
       return new Response(
         JSON.stringify({ 
           error: body.language === 'en' 
-            ? 'Software name is too long (maximum 200 characters)' 
-            : '软件名称过长（最多 200 个字符）' 
+            ? `Software name is too long (maximum ${MAX_SOFTWARE_NAME_LENGTH} characters)` 
+            : `软件名称过长（最多 ${MAX_SOFTWARE_NAME_LENGTH} 个字符）` 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Validate additional info length
-    if (body.additionalInfo && body.additionalInfo.length > 5000) {
+    if (body.additionalInfo && body.additionalInfo.length > MAX_ADDITIONAL_INFO_LENGTH) {
       return new Response(
         JSON.stringify({ 
           error: body.language === 'en' 
-            ? 'Additional information is too long (maximum 5000 characters)' 
-            : '补充说明过长（最多 5000 个字符）' 
+            ? `Additional information is too long (maximum ${MAX_ADDITIONAL_INFO_LENGTH} characters)` 
+            : `补充说明过长（最多 ${MAX_ADDITIONAL_INFO_LENGTH} 个字符）` 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -218,11 +234,13 @@ ${body.additionalInfo ? `**补充说明**: ${body.additionalInfo}` : ''}
   } catch (error) {
     console.error('Error processing request:', error);
     
-    // Don't expose internal error details to client
+    // Return internationalized error message
+    const errorMessage = language === 'en'
+      ? 'Internal server error. Please try again later.'
+      : '服务器内部错误，请稍后重试。';
+    
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error. Please try again later.'
-      }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

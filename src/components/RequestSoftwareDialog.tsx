@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 const { TextArea } = Input;
 const { Paragraph, Text, Link } = Typography;
 
+// Constants
+const REQUEST_TIMEOUT_MS = 30000;
+
 interface RequestSoftwareDialogProps {
   open: boolean;
   onClose: () => void;
@@ -24,7 +27,7 @@ const RequestSoftwareDialog: React.FC<RequestSoftwareDialogProps> = ({ open, onC
 
       // Create abort controller for timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
       try {
         // Call API to create GitHub issue automatically
